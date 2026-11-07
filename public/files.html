@@ -1,0 +1,3794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover"
+    >
+
+    <title>Pussy CAT | File Manager</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Stack+Sans+Headline:wght@200..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+    /* ── Design tokens — matches index.html ── */
+    :root {
+        --bg:          #0c0c0c;
+        --sidebar:     #111111;
+        --surface:     #141414;
+        --surface-2:   #1a1a1a;
+        --surface-3:   #202020;
+
+        --border:      #252525;
+        --border-h:    #383838;
+
+        /* Single accent — muted crimson */
+        --accent:      #c0392b;
+        --accent-soft: rgba(192,57,43,0.10);
+
+        /* Status */
+        --online:  #4e8f5e;
+        --danger:  #a33020;
+
+        /* Text */
+        --text:    #e2ddd7;
+        --muted:   #6b6660;
+        --muted-2: #3e3b38;
+
+        --shadow: none;
+        --radius: 4px;
+        --sidebar-width: 256px;
+        --topbar-height: 58px;
+
+        /* Legacy color aliases used by JS (keep for compat) */
+        --pink:   var(--accent);
+        --cyan:   #6a8ec4;
+        --green:  var(--online);
+        --red:    var(--danger);
+        --yellow: #9a7030;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; }
+
+    body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    button, select { font: inherit; }
+    button { border: 0; }
+
+    /* ── Top bar ── */
+    .top-bar {
+        height: var(--topbar-height);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 22px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        position: relative;
+        z-index: 20;
+    }
+
+    .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .brand-icon {
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius);
+        overflow: hidden;
+        opacity: 0.85;
+        transition: opacity 0.15s;
+        flex-shrink: 0;
+    }
+    .brand-icon:hover { opacity: 1; }
+    .brand-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .brand-text { min-width: 0; }
+    .brand-title {
+        font-family: 'Marcellus', serif;
+        color: var(--text);
+        font-size: 1rem;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+    }
+    .brand-subtitle {
+        margin-top: 1px;
+        color: var(--muted);
+        font-size: 0.6rem;
+        font-family: 'Stack Sans Headline', 'Montserrat', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+    }
+
+    .header-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-family: 'Montserrat', monospace;
+    }
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--online);
+    }
+
+    /* ── Layout ── */
+    .layout {
+        height: calc(100vh - var(--topbar-height));
+        display: flex;
+        min-height: 0;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+        width: var(--sidebar-width);
+        flex-shrink: 0;
+        padding: 18px 14px;
+        background: var(--sidebar);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+    }
+    .sidebar-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 4px;
+        margin-bottom: 12px;
+    }
+    .sidebar-title {
+        color: var(--text);
+        font-family: 'Stack Sans Headline', 'Montserrat', sans-serif;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+    .device-count { color: var(--muted-2); font-size: 0.68rem; font-family: 'Montserrat', monospace; }
+
+    .select-wrapper { position: relative; margin-bottom: 14px; }
+    #deviceSelect {
+        width: 100%;
+        appearance: none;
+        -webkit-appearance: none;
+        background: var(--surface-2);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 10px 34px 10px 12px;
+        font-size: 0.82rem;
+        outline: none;
+        cursor: pointer;
+        transition: border-color 0.15s;
+        font-family: 'Montserrat', sans-serif;
+    }
+    #deviceSelect:hover { border-color: var(--border-h); }
+    #deviceSelect:focus { border-color: rgba(192,57,43,0.4); }
+    .select-arrow { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+
+    /* Device card */
+    .device-card {
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+    }
+    .device-icon {
+        width: 38px;
+        height: 38px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius);
+        background: var(--surface-3);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.9rem;
+    }
+    .device-meta { min-width: 0; flex: 1; }
+    .device-name {
+        color: var(--text);
+        font-size: 0.82rem;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .device-status {
+        margin-top: 3px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: var(--muted);
+        font-size: 0.68rem;
+        font-family: 'Montserrat', monospace;
+    }
+    .device-status-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--muted-2); }
+    .device-status.online .device-status-dot  { background: var(--online); }
+    .device-status.offline .device-status-dot { background: var(--danger); }
+
+    .sidebar-footer {
+        margin-top: auto;
+        padding: 16px 4px 0;
+        color: var(--muted-2);
+        font-size: 0.65rem;
+        line-height: 1.5;
+        font-family: 'Montserrat', monospace;
+    }
+
+    /* ── Content ── */
+    .content {
+        min-width: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 18px 22px;
+        overflow: hidden;
+    }
+
+    /* Breadcrumb */
+    .breadcrumb {
+        min-height: 42px;
+        display: flex;
+        align-items: center;
+        margin-bottom: 14px;
+        padding: 5px 12px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow-x: auto;
+        scrollbar-width: none;
+        flex-shrink: 0;
+    }
+    .breadcrumb::-webkit-scrollbar { display: none; }
+    .breadcrumb-home {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        flex-shrink: 0;
+        border-radius: var(--radius);
+        color: var(--accent);
+        background: var(--accent-soft);
+        cursor: pointer;
+        transition: background 0.14s;
+    }
+    .breadcrumb-home:hover { background: rgba(192,57,43,0.18); }
+    .breadcrumb-separator { color: var(--muted-2); margin: 0 5px; font-size: 0.68rem; flex-shrink: 0; }
+    .breadcrumb-part {
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        font-family: 'Montserrat', monospace;
+        font-size: 0.75rem;
+        padding: 6px 5px;
+        border-radius: var(--radius);
+        white-space: nowrap;
+        cursor: pointer;
+    }
+    .breadcrumb-part:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+    .breadcrumb-part.current { color: var(--accent); cursor: default; }
+
+    /* Toolbar */
+    .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+        flex-shrink: 0;
+    }
+    .location-title { min-width: 0; }
+    .location-title h1 {
+        font-family: 'Marcellus', serif;
+        color: var(--text);
+        font-size: 1rem;
+        font-weight: 400;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .location-title p { margin-top: 2px; color: var(--muted); font-size: 0.7rem; font-family: 'Montserrat', monospace; }
+    .toolbar-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    .icon-btn {
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius);
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        cursor: pointer;
+        transition: border-color 0.14s, color 0.14s;
+    }
+    .icon-btn:hover { color: var(--text); border-color: var(--border-h); }
+    .icon-btn:disabled { opacity: 0.32; cursor: not-allowed; }
+
+    /* File list */
+    #fileList {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        overflow-y: auto;
+        padding: 2px 2px 20px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+    }
+    #fileList::-webkit-scrollbar { width: 4px; }
+    #fileList::-webkit-scrollbar-track { background: transparent; }
+    #fileList::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .file-checkbox { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+
+    /* File item */
+    .item {
+        min-height: 54px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 10px 9px 12px;
+        border-radius: var(--radius);
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: border-color 0.14s, background 0.12s;
+    }
+    .item:hover { border-color: var(--border-h); background: var(--surface-2); }
+    .item:active { background: var(--surface-3); }
+
+    .item.dir {
+        background: var(--surface);
+        color: var(--text);
+        border-color: var(--border);
+    }
+    .item.dir:hover { background: var(--surface-2); border-color: var(--border-h); }
+
+    .item-icon {
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius);
+        background: var(--surface-3);
+        border: 1px solid var(--border);
+        font-size: 0.88rem;
+        color: var(--muted);
+    }
+    .dir .item-icon { color: var(--accent); border-color: rgba(192,57,43,0.2); background: var(--accent-soft); }
+
+    .item-info { min-width: 0; flex: 1; }
+    .item-name { font-size: 0.82rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+    .item-type { margin-top: 3px; font-size: 0.65rem; color: var(--muted); font-family: 'Montserrat', monospace; }
+
+    .fetch-btn {
+        flex-shrink: 0;
+        min-width: 60px;
+        padding: 7px 10px;
+        border-radius: var(--radius);
+        background: var(--accent-soft);
+        border: 1px solid rgba(192,57,43,0.28);
+        color: var(--accent);
+        font-size: 0.7rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.14s, border-color 0.14s;
+        font-family: 'Stack Sans Headline', 'Montserrat', sans-serif;
+        letter-spacing: 0.04em;
+    }
+    .fetch-btn:hover { background: rgba(192,57,43,0.18); border-color: var(--accent); }
+    .fetch-btn:active { background: rgba(192,57,43,0.22); }
+    .fetch-btn:disabled { opacity: 0.38; cursor: wait; }
+
+    /* Empty / loading */
+    .state {
+        flex: 1;
+        min-height: 220px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 30px;
+    }
+    .state-box { max-width: 340px; }
+    .state-icon {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 1.05rem;
+    }
+    .state-title { color: var(--text); font-size: 0.88rem; font-weight: 500; }
+    .state-description { margin-top: 6px; color: var(--muted); font-size: 0.72rem; line-height: 1.5; font-family: 'Montserrat', monospace; }
+    .spinner { animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Toast */
+    .toast-container {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        pointer-events: none;
+    }
+    .toast {
+        max-width: min(360px, calc(100vw - 36px));
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: var(--radius);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-size: 0.75rem;
+        animation: toast-in 0.2s ease forwards;
+        font-family: 'Montserrat', sans-serif;
+    }
+    .toast.success i { color: var(--online); }
+    .toast.error   i { color: var(--danger); }
+    .toast.info    i { color: #6a8ec4; }
+    @keyframes toast-in {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Mobile ── */
+    .mobile-device { display: none; }
+    @media (max-width: 760px) {
+        :root { --topbar-height: 52px; }
+        .top-bar { padding: 0 14px; }
+        .brand-icon { width: 28px; height: 28px; }
+        .brand-title { font-size: 0.9rem; }
+        .brand-subtitle, .header-status { display: none; }
+        .layout { display: block; height: calc(100vh - var(--topbar-height)); }
+        .sidebar { display: none; }
+        .content { height: 100%; padding: 12px; }
+        .mobile-device {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin-bottom: 10px;
+        }
+        .mobile-device-select { flex: 1; min-width: 0; position: relative; }
+        .mobile-device select {
+            width: 100%;
+            appearance: none;
+            background: var(--surface-2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 9px 32px 9px 12px;
+            outline: none;
+            font-size: 0.78rem;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .mobile-device .select-arrow { right: 12px; }
+        .breadcrumb { margin-bottom: 10px; min-height: 38px; }
+        .toolbar { margin-bottom: 9px; }
+        .location-title h1 { font-size: 0.9rem; }
+        .location-title p  { font-size: 0.65rem; }
+        .icon-btn { width: 32px; height: 32px; }
+        .item { min-height: 50px; padding: 8px; gap: 8px; }
+        .item-icon { width: 34px; height: 34px; }
+        .item-name { font-size: 0.78rem; }
+        .item-type { font-size: 0.6rem; }
+        .fetch-btn { min-width: 56px; padding: 6px 8px; }
+        .toast-container { left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); }
+        .toast { max-width: none; }
+    }
+    @media (max-width: 420px) {
+        .brand-icon { display: none; }
+        .toolbar-actions .icon-btn:nth-child(2) { display: none; }
+        .item-type { display: none; }
+    }
+
+    /* ── Preview Modal ── */
+    .preview-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.88);
+        z-index: 1000;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .preview-content {
+        width: 90%;
+        max-width: 1000px;
+        max-height: 90vh;
+        background: var(--surface);
+        border-radius: var(--radius);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border);
+    }
+    .preview-header {
+        padding: 14px 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--border);
+    }
+    .preview-body {
+        flex: 1;
+        overflow: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+        min-height: 400px;
+    }
+    .preview-footer {
+        padding: 14px 18px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        border-top: 1px solid var(--border);
+    }
+    .preview-media { max-width: 100%; max-height: 100%; }
+    .preview-text {
+        width: 100%;
+        height: 100%;
+        padding: 18px;
+        color: var(--text);
+        font-family: 'Montserrat', monospace;
+        font-size: 0.8rem;
+        white-space: pre-wrap;
+        background: var(--bg);
+        overflow: auto;
+        text-align: left;
+    }
+    .close-preview { cursor: pointer; color: var(--muted); font-size: 1.3rem; transition: color 0.14s; }
+    .close-preview:hover { color: var(--text); }
+
+    .item-actions { display: flex; gap: 6px; align-items: center; }
+    .preview-btn {
+        background: var(--accent-soft);
+        color: var(--accent);
+        border: 1px solid rgba(192,57,43,0.2);
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.14s;
+    }
+    .preview-btn:hover { background: rgba(192,57,43,0.18); }
+
+    /* ── Gallery Modal ── */
+    .gallery-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 900;
+        background: rgba(0,0,0,0.95);
+        flex-direction: column;
+        animation: gallery-fade-in 0.2s ease;
+    }
+    @keyframes gallery-fade-in { from { opacity: 0; } to { opacity: 1; } }
+    .gallery-modal.active { display: flex; }
+
+    .gallery-topbar {
+        height: 58px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 22px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        background: rgba(12,12,12,0.95);
+    }
+    .gallery-topbar-left { display: flex; align-items: center; gap: 12px; }
+    .gallery-topbar-icon {
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius);
+        background: var(--accent-soft);
+        border: 1px solid rgba(192,57,43,0.2);
+        color: var(--accent);
+        font-size: 0.88rem;
+    }
+    .gallery-topbar-info h2 { color: #fff; font-family: 'Marcellus', serif; font-size: 0.9rem; font-weight: 400; }
+    .gallery-topbar-info p  { color: rgba(255,255,255,0.35); font-size: 0.65rem; margin-top: 2px; font-family: 'Montserrat', monospace; }
+    .gallery-topbar-actions { display: flex; align-items: center; gap: 8px; }
+
+    .gallery-status-badge {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 11px;
+        border-radius: var(--radius);
+        font-size: 0.65rem;
+        font-weight: 600;
+        background: rgba(78,143,94,0.10);
+        border: 1px solid rgba(78,143,94,0.22);
+        color: var(--online);
+        font-family: 'Montserrat', monospace;
+        letter-spacing: 0.04em;
+    }
+
+    /* ── Gallery close button ── */
+    .gallery-close-btn {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius);
+        background: var(--accent-soft);
+        border: 1px solid rgba(192,57,43,0.28);
+        color: var(--accent);
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background 0.14s;
+    }
+    .gallery-close-btn:hover { background: rgba(192,57,43,0.22); border-color: var(--accent); }
+
+    /* ── Gallery status dot ── */
+    .gallery-status-dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+        animation: pulse-dot 1.6s infinite;
+    }
+    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ── Gallery picker (Step 1) ── */
+    .gallery-picker {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        overflow-y: auto;
+        background: var(--bg);
+    }
+    .gallery-picker-inner {
+        width: 100%;
+        max-width: 520px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    .gallery-picker-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius);
+        background: var(--accent-soft);
+        border: 1px solid rgba(192,57,43,0.22);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent);
+        font-size: 1.2rem;
+    }
+    .gallery-picker-title {
+        font-family: 'Marcellus', serif;
+        font-size: 1.4rem;
+        font-weight: 400;
+        color: var(--text);
+        letter-spacing: -0.02em;
+    }
+    .gallery-picker-sub {
+        font-size: 0.78rem;
+        color: var(--muted);
+        line-height: 1.55;
+        font-family: 'Montserrat', sans-serif;
+        margin-top: -10px;
+    }
+
+    /* Preset path chips */
+    .gallery-picker-presets {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .gallery-preset {
+        padding: 5px 13px;
+        border-radius: 2px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--muted);
+        font-family: 'Montserrat', monospace;
+        font-size: 0.72rem;
+        cursor: pointer;
+        transition: border-color 0.14s, color 0.14s, background 0.12s;
+        white-space: nowrap;
+    }
+    .gallery-preset:hover  { border-color: var(--border-h); color: var(--text); }
+    .gallery-preset.active { border-color: rgba(192,57,43,0.4); color: var(--accent); background: var(--accent-soft); }
+
+    /* Custom path input */
+    .gallery-picker-label {
+        display: block;
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
+        font-family: 'Stack Sans Headline', 'Montserrat', sans-serif;
+    }
+    .gallery-picker-input-row {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        overflow: hidden;
+        transition: border-color 0.14s;
+    }
+    .gallery-picker-input-row:focus-within { border-color: rgba(192,57,43,0.4); }
+    .gallery-picker-input-icon {
+        padding: 0 12px;
+        color: var(--muted);
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+    }
+    .gallery-picker-input {
+        flex: 1;
+        background: transparent;
+        border: 0;
+        outline: none;
+        color: var(--text);
+        font-family: 'Montserrat', monospace;
+        font-size: 0.8rem;
+        padding: 10px 12px 10px 0;
+    }
+    .gallery-picker-input::placeholder { color: var(--muted-2); }
+
+    /* Checkbox option */
+    .gallery-picker-options { display: flex; flex-direction: column; gap: 8px; }
+    .gallery-picker-check {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 0.8rem;
+        color: var(--muted);
+        cursor: pointer;
+        font-family: 'Montserrat', sans-serif;
+    }
+    .gallery-picker-check input[type="checkbox"] {
+        width: 15px; height: 15px;
+        accent-color: var(--accent);
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    /* Start Fetching button */
+    .gallery-start-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 22px;
+        border-radius: var(--radius);
+        background: var(--accent);
+        border: 1px solid var(--accent);
+        color: #fff;
+        font-family: 'Stack Sans Headline', 'Montserrat', sans-serif;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+        align-self: flex-start;
+        transition: background 0.14s, opacity 0.14s;
+    }
+    .gallery-start-btn:hover   { background: #a33020; border-color: #a33020; }
+    .gallery-start-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Gallery body (Step 2 image grid) ── */
+    .gallery-body {
+        flex: 1;
+        overflow-y: auto;
+        background: var(--bg);
+        padding: 14px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 6px;
+        align-content: start;
+    }
+    .gallery-body::-webkit-scrollbar { width: 4px; }
+    .gallery-body::-webkit-scrollbar-track { background: transparent; }
+    .gallery-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .gallery-img-cell {
+        position: relative;
+        aspect-ratio: 1;
+        overflow: hidden;
+        border-radius: var(--radius);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: border-color 0.14s;
+    }
+    .gallery-img-cell:hover { border-color: var(--border-h); }
+    .gallery-img-cell img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    .gallery-img-name {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        padding: 5px 7px;
+        background: rgba(0,0,0,0.65);
+        font-family: 'Montserrat', monospace;
+        font-size: 0.58rem;
+        color: rgba(255,255,255,0.65);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* ── Gallery lightbox ── */
+    .gallery-lightbox {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: rgba(0,0,0,0.97);
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+    }
+    .gallery-lightbox.active { display: flex; }
+    .gallery-lightbox-close {
+        position: absolute;
+        top: 18px; right: 22px;
+        width: 34px; height: 34px;
+        border-radius: var(--radius);
+        background: var(--accent-soft);
+        border: 1px solid rgba(192,57,43,0.3);
+        color: var(--accent);
+        font-size: 0.95rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.14s;
+    }
+    .gallery-lightbox-close:hover { background: rgba(192,57,43,0.2); }
+    .gallery-lightbox-img {
+        max-width: 92vw;
+        max-height: 80vh;
+        object-fit: contain;
+        border-radius: var(--radius);
+    }
+    .gallery-lightbox-bar {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 10px 18px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+    }
+    .gallery-lightbox-name {
+        font-family: 'Montserrat', monospace;
+        font-size: 0.72rem;
+        color: var(--muted);
+        flex: 1;
+    }
+    .gallery-lightbox-actions { display: flex; gap: 8px; }
+    .gallery-lightbox-btn {
+        padding: 6px 16px;
+        border-radius: var(--radius);
+        font-family: 'Stack Sans Headline', 'Montserrat', sans-serif;
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--muted);
+        transition: border-color 0.14s, color 0.14s;
+    }
+    .gallery-lightbox-btn:hover { border-color: var(--border-h); color: var(--text); }
+    .gallery-lightbox-btn.primary {
+        background: var(--accent-soft);
+        border-color: rgba(192,57,43,0.3);
+        color: var(--accent);
+    }
+    .gallery-lightbox-btn.primary:hover { background: rgba(192,57,43,0.18); border-color: var(--accent); }
+
+    /* ── Gallery View button ── */
+    .gallery-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 0 16px;
+        height: 34px;
+        border-radius: var(--radius);
+        background: var(--accent-soft);
+        border: 1px solid rgba(192,57,43,0.28);
+        color: var(--accent);
+        font-family: 'Stack Sans Headline', 'Montserrat', sans-serif;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.14s, border-color 0.14s, color 0.14s;
+    }
+    .gallery-btn i { font-size: 0.78rem; }
+    .gallery-btn:hover:not(:disabled) {
+        background: rgba(192,57,43,0.18);
+        border-color: var(--accent);
+    }
+    .gallery-btn:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+    }
+
+    /* ── Gallery grid ── */
+    .gallery-body {
+        flex: 1;
+        overflow-y: auto;
+        background: var(--bg);
+        padding: 10px;
+    }
+    .gallery-body::-webkit-scrollbar { width: 4px; }
+    .gallery-body::-webkit-scrollbar-track { background: transparent; }
+    .gallery-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, 160px);
+        gap: 6px;
+        justify-content: center;
+    }
+
+    /* strict 1:1 square via padding trick */
+    .gallery-item {
+        position: relative;
+        width: 160px;
+        height: 160px;
+        overflow: hidden;
+        border-radius: var(--radius);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: border-color 0.14s;
+        animation: gal-pop 0.22s ease backwards;
+    }
+    @keyframes gal-pop {
+        from { opacity: 0; transform: scale(0.96); }
+        to   { opacity: 1; transform: scale(1); }
+    }
+    .gallery-item:hover { border-color: var(--border-h); }
+    .gallery-item:hover .gallery-item-overlay { opacity: 1; }
+
+    /* image fills the square, cropped */
+    .gallery-item img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+        z-index: 1;
+    }
+    .gallery-item img.loaded { opacity: 1; }
+
+    /* skeleton shimmer — sits behind the image */
+    .gallery-skeleton {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        background: var(--surface-2);
+        background-image: linear-gradient(
+            90deg,
+            var(--surface-2) 0%,
+            var(--surface-3) 45%,
+            var(--surface-2) 90%
+        );
+        background-size: 300% 100%;
+        animation: gal-shimmer 1.5s infinite ease-in-out;
+    }
+    @keyframes gal-shimmer {
+        0%   { background-position: 100% 0; }
+        100% { background-position: -100% 0; }
+    }
+    /* once image loaded, hide skeleton */
+    .gallery-item img.loaded ~ .gallery-skeleton { display: none; }
+
+    /* hover overlay with filename + size */
+    .gallery-item-overlay {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        padding: 20px 8px 7px;
+        background: linear-gradient(transparent, rgba(0,0,0,0.72));
+        opacity: 0;
+        transition: opacity 0.18s;
+        z-index: 2;
+    }
+    .gallery-item-name {
+        font-family: 'Montserrat', monospace;
+        font-size: 0.58rem;
+        color: rgba(255,255,255,0.85);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .gallery-item-size {
+        font-family: 'Montserrat', monospace;
+        font-size: 0.52rem;
+        color: rgba(255,255,255,0.4);
+        margin-top: 1px;
+    }
+
+    /* loading / empty states */
+    .gallery-loading-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        padding: 60px 20px;
+        text-align: center;
+        width: 100%;
+    }
+    .gallery-spinner-ring {
+        width: 36px; height: 36px;
+        border: 2px solid var(--border);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+    }
+    .gallery-loading-text {
+        font-family: 'Marcellus', serif;
+        font-size: 1rem;
+        color: var(--text);
+    }
+    .gallery-loading-sub {
+        font-family: 'Montserrat', monospace;
+        font-size: 0.72rem;
+        color: var(--muted);
+        margin-top: 4px;
+    }
+    .gallery-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 80px 20px;
+        text-align: center;
+        color: var(--muted);
+        width: 100%;
+    }
+    .gallery-empty i   { font-size: 2rem; color: var(--border-h); }
+    .gallery-empty h3  { font-family: 'Marcellus', serif; font-size: 1rem; font-weight: 400; color: var(--text); }
+    .gallery-empty p   { font-size: 0.75rem; font-family: 'Montserrat', monospace; }
+</style>
+</head>
+
+<body>
+
+<header class="top-bar">
+    <div class="brand">
+        <div class="brand-icon">
+            <img src="https://pub-3ab59b8f25ba43769d968211da80e759.r2.dev/brand/zidhuxd-icon-white.png" alt="Brand" />
+        </div>
+
+        <div class="brand-text">
+            <div class="brand-title">Pussy CAT</div>
+            <div class="brand-subtitle">Files Server</div>
+        </div>
+    </div>
+
+    <div class="header-status">
+        <span class="status-dot"></span>
+        <span id="serverStatus">Connected</span>
+    </div>
+</header>
+
+
+<div class="layout">
+
+    <!-- =========================================================
+         DESKTOP SIDEBAR
+    ========================================================== -->
+
+    <aside class="sidebar">
+
+        <div class="sidebar-heading">
+            <div class="sidebar-title">Devices</div>
+            <div class="device-count" id="deviceCount">0</div>
+        </div>
+
+        <div class="select-wrapper">
+
+            <select id="deviceSelect">
+                <option value="">-- Select Device --</option>
+            </select>
+
+            <span class="select-arrow">
+                <i class="fas fa-chevron-down"></i>
+            </span>
+
+        </div>
+
+        <div class="device-card">
+
+            <div class="device-icon">
+                <i class="fas fa-mobile-screen-button"></i>
+            </div>
+
+            <div class="device-meta">
+
+                <div class="device-name" id="deviceName">
+                    No device selected
+                </div>
+
+                <div class="device-status" id="deviceStatus">
+                    <span class="device-status-dot"></span>
+                    <span>Waiting…</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="sidebar-footer">
+            Select an online device to browse its available files.
+        </div>
+
+    </aside>
+
+
+    <!-- =========================================================
+         CONTENT
+    ========================================================== -->
+
+    <main class="content">
+
+        <!-- Mobile device selector -->
+
+        <div class="mobile-device">
+
+            <div class="mobile-device-select">
+
+                <select id="mobileDeviceSelect">
+                    <option value="">Select device</option>
+                </select>
+
+                <span class="select-arrow">
+                    <i class="fas fa-chevron-down"></i>
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- Breadcrumb -->
+
+        <nav
+            class="breadcrumb"
+            id="breadcrumb"
+            aria-label="Breadcrumb"
+        ></nav>
+
+
+        <!-- Toolbar -->
+
+        <div class="toolbar">
+
+            <div class="location-title">
+
+                <h1 id="locationTitle">Files</h1>
+
+                <p id="locationDescription">
+                    Select a device to begin
+                </p>
+
+            </div>
+
+            <div class="toolbar-actions">
+
+                <button
+                    class="gallery-btn"
+                    id="galleryViewBtn"
+                    title="Gallery View – browse all images on device"
+                    aria-label="Gallery View"
+                    disabled
+                >
+                    <i class="fas fa-images"></i>
+                    Gallery View
+                </button>
+
+                <button
+                    class="icon-btn"
+                    id="backBtn"
+                    title="Go back"
+                    aria-label="Go back"
+                    disabled
+                >
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+
+                <button
+                    class="icon-btn"
+                    id="fetchSelectedBtn"
+                    title="Fetch selected"
+                    aria-label="Fetch selected"
+                    disabled
+                >
+                    <i class="fas fa-download"></i>
+                </button>
+
+                <button
+                    class="icon-btn"
+                    id="refreshBtn"
+                    title="Refresh"
+                    aria-label="Refresh"
+                    disabled
+                >
+                    <i class="fas fa-rotate"></i>
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- Files -->
+
+        <section id="fileList">
+
+            <div class="state">
+
+                <div class="state-box">
+
+                    <div class="state-icon">
+                        <i class="fas fa-mobile-screen-button"></i>
+                    </div>
+
+                    <div class="state-title">
+                        Connect a device
+                    </div>
+
+                    <div class="state-description">
+                        Select an online device to explore its files.
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- Toast notifications -->
+
+<div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+<!-- Preview Modal -->
+<div id="previewModal" class="preview-modal">
+    <div class="preview-content">
+        <div class="preview-header">
+            <span id="previewTitle" class="item-name" style="color:#fff">File Preview</span>
+            <i class="fas fa-times close-preview" onclick="closePreview()"></i>
+        </div>
+        <div id="previewBody" class="preview-body">
+            <!-- Content injected here -->
+        </div>
+        <div class="preview-footer">
+            <button class="fetch-btn" id="previewDownloadBtn">Download</button>
+            <button class="fetch-btn" style="background:#333; color:#eee" onclick="closePreview()">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Gallery Modal -->
+<div id="galleryModal" class="gallery-modal" role="dialog" aria-label="Gallery View">
+
+    <div class="gallery-topbar">
+        <div class="gallery-topbar-left">
+            <div class="gallery-topbar-icon">
+                <i class="fas fa-images"></i>
+            </div>
+            <div class="gallery-topbar-info">
+                <h2>Gallery View</h2>
+                <p id="gallerySubtitle">Select a folder to scan</p>
+            </div>
+        </div>
+        <div class="gallery-topbar-actions">
+            <div class="gallery-status-badge loading" id="galleryStatusBadge" style="display:none">
+                <span class="gallery-status-dot"></span>
+                <span id="galleryStatusText">Loading…</span>
+            </div>
+            <button class="gallery-close-btn" id="galleryCloseBtn" title="Close Gallery" aria-label="Close Gallery">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Step 1: Folder Picker -->
+    <div class="gallery-picker" id="galleryPicker">
+
+        <div class="gallery-picker-inner">
+
+            <div class="gallery-picker-icon">
+                <i class="fas fa-folder-open"></i>
+            </div>
+
+            <h3 class="gallery-picker-title">Choose a folder to scan</h3>
+            <p class="gallery-picker-sub">All image files under 5 MB inside the folder and its subfolders will be fetched.</p>
+
+            <div class="gallery-picker-presets" id="galleryPresets">
+                <button class="gallery-preset active" data-path="/DCIM/Camera">DCIM/Camera</button>
+                <button class="gallery-preset" data-path="/DCIM">DCIM</button>
+                <button class="gallery-preset" data-path="/Pictures">Pictures</button>
+                <button class="gallery-preset" data-path="/WhatsApp/Media">WhatsApp Media</button>
+                <button class="gallery-preset" data-path="/Download">Download</button>
+                <button class="gallery-preset" data-path="/Movies">Movies</button>
+                <button class="gallery-preset" data-path="/">Entire Device (/)</button>
+            </div>
+
+            <div class="gallery-picker-custom">
+                <label class="gallery-picker-label">Or enter a custom path</label>
+                <div class="gallery-picker-input-row">
+                    <span class="gallery-picker-input-icon"><i class="fas fa-folder"></i></span>
+                    <input
+                        type="text"
+                        id="galleryCustomPath"
+                        class="gallery-picker-input"
+                        placeholder="e.g. /storage/emulated/0/DCIM"
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                </div>
+            </div>
+
+            <div class="gallery-picker-options">
+                <label class="gallery-picker-check">
+                    <input type="checkbox" id="galleryRecursive" checked>
+                    <span>Scan subfolders recursively</span>
+                </label>
+            </div>
+
+            <button class="gallery-start-btn" id="galleryStartBtn">
+                <i class="fas fa-rocket"></i>
+                Start Fetching
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- Step 2: Image grid -->
+    <div class="gallery-body" id="galleryBody" style="display:none">
+        <!-- Images injected here -->
+    </div>
+
+</div>
+
+<!-- Gallery Lightbox -->
+<div id="galleryLightbox" class="gallery-lightbox" role="dialog" aria-label="Image Preview">
+    <button class="gallery-lightbox-close" id="lightboxClose" title="Close">
+        <i class="fas fa-times"></i>
+    </button>
+    <img id="lightboxImg" class="gallery-lightbox-img" src="" alt="Image Preview">
+    <div class="gallery-lightbox-bar">
+        <span class="gallery-lightbox-name" id="lightboxName"></span>
+        <div class="gallery-lightbox-actions">
+            <button class="gallery-lightbox-btn primary" id="lightboxDownload">Download</button>
+            <button class="gallery-lightbox-btn" id="lightboxCloseBtn">Close</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+"use strict";
+
+/* ================================================================
+   CONFIGURATION
+================================================================ */
+
+const CONFIG = {
+    endpoints: {
+        devices: "/api/devices",
+        listFiles: "/api/list-files",
+        getFiles: uuid => '/api/get-files/' + encodeURIComponent(uuid),
+        clearLatest: uuid => '/api/clear-latest-file/' + encodeURIComponent(uuid),
+        fetchMedia: "/api/fetch-media",
+        getLatest: uuid => '/api/get-latest-file/' + encodeURIComponent(uuid)
+    },
+
+    deviceRefreshMs: 5000,
+
+    /*
+     * Polling starts quickly and slows down slightly.
+     * This avoids hammering the server/device while still
+     * making responses feel fast.
+     */
+    filePollIntervals: [
+        800,
+        1000,
+        1200,
+        1500,
+        1800,
+        2200,
+        2500
+    ],
+
+    maxFilePolls: 40,
+    maxFetchPolls: 60,
+
+    requestTimeoutMs: 15000
+};
+
+
+/* ================================================================
+   STATE
+================================================================ */
+
+const state = {
+    uuid: "",
+    path: "/",
+    devices: [],
+
+    /*
+     * Every navigation receives a new request ID.
+     * Old responses are ignored.
+     */
+    browseRequestId: 0,
+
+    fetchRequestId: 0,
+
+    deviceRefreshTimer: null,
+
+    filePollTimer: null,
+
+    fetchPollTimer: null,
+
+    abortControllers: new Set(),
+
+    /*
+     * Client-side directory listing cache.
+     * Key: "uuid::path"  →  Value: raw file-listing text from device.
+     * Navigating back to a cached folder renders instantly without
+     * re-requesting from the device.  Only explicit refresh bypasses it.
+     */
+    dirCache: new Map(),
+
+    // Gallery state
+    galleryOpen: false,
+    galleryAborted: false,
+    galleryImages: [],
+    galleryTotal: 0
+};
+
+
+/* ================================================================
+   DOM
+================================================================ */
+
+const $ = id => document.getElementById(id);
+
+const els = {
+    deviceSelect: $("deviceSelect"),
+    mobileDeviceSelect: $("mobileDeviceSelect"),
+
+    deviceCount: $("deviceCount"),
+    deviceName: $("deviceName"),
+    deviceStatus: $("deviceStatus"),
+
+    breadcrumb: $("breadcrumb"),
+
+    locationTitle: $("locationTitle"),
+    locationDescription: $("locationDescription"),
+
+    fileList: $("fileList"),
+
+    backBtn: $("backBtn"),
+    refreshBtn: $("refreshBtn"),
+    fetchSelectedBtn: $("fetchSelectedBtn"),
+    galleryViewBtn: $("galleryViewBtn"),
+
+    serverStatus: $("serverStatus"),
+
+    toastContainer: $("toastContainer")
+};
+
+
+/* ================================================================
+   INITIALIZATION
+================================================================ */
+
+document.addEventListener("DOMContentLoaded", init);
+
+async function init() {
+
+    bindEvents();
+
+    renderBreadcrumb("/");
+    showInitialState();
+
+    await fetchDevices();
+
+    /*
+     * Refresh device status periodically.
+     */
+    state.deviceRefreshTimer = setInterval(
+        fetchDevices,
+        CONFIG.deviceRefreshMs
+    );
+}
+
+
+/* ================================================================
+   EVENTS
+================================================================ */
+
+function bindEvents() {
+
+    els.deviceSelect.addEventListener("change", event => {
+        selectDevice(event.target.value);
+    });
+
+    els.mobileDeviceSelect.addEventListener("change", event => {
+        selectDevice(event.target.value);
+    });
+
+    els.backBtn.addEventListener("click", () => {
+
+        if (state.path === "/") {
+            return;
+        }
+
+        const parts = state.path
+            .split("/")
+            .filter(Boolean);
+
+        parts.pop();
+
+        const parent = parts.length
+            ? "/" + parts.join("/")
+            : "/";
+
+        browse(parent);
+    });
+
+    els.refreshBtn.addEventListener("click", () => {
+
+        if (state.uuid) {
+            browse(state.path, true);
+        }
+
+    });
+
+    els.fetchSelectedBtn.addEventListener("click", () => {
+        const selected = Array.from(document.querySelectorAll(".file-checkbox:checked"))
+            .map(cb => cb.dataset.path);
+
+        if (selected.length > 0) {
+            // Join with pipe for the Android side to handle
+            const multiPath = selected.join("|");
+            fetchMultiFiles(multiPath, els.fetchSelectedBtn);
+        }
+    });
+
+    // Gallery View button
+    els.galleryViewBtn.addEventListener("click", openGallery);
+
+    // Gallery modal close
+    $("galleryCloseBtn").addEventListener("click", closeGallery);
+
+    // Close gallery when clicking outside modal content (on backdrop)
+    $("galleryModal").addEventListener("click", e => {
+        if (e.target === $("galleryModal")) closeGallery();
+    });
+
+    // Lightbox close
+    $("lightboxClose").addEventListener("click", closeLightbox);
+    $("lightboxCloseBtn").addEventListener("click", closeLightbox);
+    $("galleryLightbox").addEventListener("click", e => {
+        if (e.target === $("galleryLightbox") || e.target === $("lightboxImg")) closeLightbox();
+    });
+
+    // Keyboard close
+    document.addEventListener("keydown", e => {
+        if (e.key === "Escape") {
+            if ($("galleryLightbox").classList.contains("active")) {
+                closeLightbox();
+            } else if ($("galleryModal").classList.contains("active")) {
+                closeGallery();
+            }
+        }
+    });
+}
+
+function updateFetchSelectedBtn() {
+    const selectedCount = document.querySelectorAll(".file-checkbox:checked").length;
+    els.fetchSelectedBtn.disabled = selectedCount === 0;
+    if (selectedCount > 0) {
+        els.fetchSelectedBtn.style.color = "var(--pink)";
+        els.fetchSelectedBtn.style.borderColor = "var(--pink)";
+    } else {
+        els.fetchSelectedBtn.style.color = "var(--muted)";
+        els.fetchSelectedBtn.style.borderColor = "var(--border)";
+    }
+}
+
+async function fetchMultiFiles(multiPath, button) {
+    if (!state.uuid) return;
+
+    const requestId = ++state.fetchRequestId;
+    const originalText = button.innerHTML;
+    cancelFetchPolling();
+
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner spinner"></i>';
+
+    try {
+        await request(CONFIG.endpoints.clearLatest(state.uuid), { method: "GET" });
+        await request(buildUrl(CONFIG.endpoints.fetchMedia, { uuid: state.uuid, path: multiPath }), { method: "GET" });
+
+        showToast("Compressing and fetching selected files...", "info");
+
+        const fileUrl = await pollForFetchedFile(requestId);
+        if (requestId !== state.fetchRequestId) return;
+
+        if (!fileUrl) throw new Error("The device did not return the zip file.");
+
+        window.open(fileUrl, "_blank", "noopener,noreferrer");
+        showToast("Zip file is ready.", "success");
+    } catch (error) {
+        if (error.name !== "AbortError") {
+            showToast(error.message || "Unable to fetch files.", "error");
+        }
+    } finally {
+        button.disabled = false;
+        button.innerHTML = originalText;
+        updateFetchSelectedBtn();
+    }
+}
+
+
+/* ================================================================
+   DEVICE MANAGEMENT
+================================================================ */
+
+async function fetchDevices() {
+
+    try {
+
+        const data = await request(
+            CONFIG.endpoints.devices,
+            {
+                method: "GET"
+            }
+        );
+
+        if (!Array.isArray(data)) {
+            throw new Error("Invalid device response");
+        }
+
+        state.devices = data;
+
+        renderDevices(data);
+
+        els.serverStatus.textContent = "Connected";
+
+    } catch (error) {
+
+        console.error("Device refresh failed:", error);
+
+        els.serverStatus.textContent = "Server unavailable";
+
+        /*
+         * Don't destroy the existing device list when a temporary
+         * network failure happens.
+         */
+    }
+}
+
+
+function renderDevices(devices) {
+
+    const currentValue = state.uuid;
+
+    const desktop = els.deviceSelect;
+    const mobile = els.mobileDeviceSelect;
+
+    desktop.innerHTML = "";
+    mobile.innerHTML = "";
+
+    const desktopPlaceholder =
+        document.createElement("option");
+
+    desktopPlaceholder.value = "";
+    desktopPlaceholder.textContent = "-- Select Device --";
+
+    desktop.appendChild(desktopPlaceholder);
+
+
+    const mobilePlaceholder =
+        document.createElement("option");
+
+    mobilePlaceholder.value = "";
+    mobilePlaceholder.textContent = "Select device";
+
+    mobile.appendChild(mobilePlaceholder);
+
+
+    for (const device of devices) {
+
+        const uuid = String(device.uuid ?? "");
+        const model = String(device.model ?? "Unknown device");
+
+        if (!uuid) {
+            continue;
+        }
+
+        const online = Boolean(device.online);
+
+
+        const desktopOption =
+            document.createElement("option");
+
+        desktopOption.value = uuid;
+        desktopOption.textContent = (model + (online ? " (Online)" : " (Offline)"));
+
+        desktop.appendChild(desktopOption);
+
+
+        const mobileOption =
+            document.createElement("option");
+
+        mobileOption.value = uuid;
+        mobileOption.textContent = (model + ' ' + (online ? "🟢" : "🔴"));
+
+        mobile.appendChild(mobileOption);
+    }
+
+
+    /*
+     * Keep selected device if it still exists.
+     */
+    const stillExists = devices.some(
+        device => String(device.uuid) === currentValue
+    );
+
+    if (stillExists) {
+
+        desktop.value = currentValue;
+        mobile.value = currentValue;
+
+        updateDeviceCard();
+
+    } else if (!currentValue) {
+
+        updateDeviceCard();
+
+    } else {
+
+        /*
+         * Selected device disappeared.
+         */
+        state.uuid = "";
+
+        desktop.value = "";
+        mobile.value = "";
+
+        updateDeviceCard();
+
+        cancelPolling();
+
+        showInitialState();
+    }
+
+
+    els.deviceCount.textContent = devices.length;
+}
+
+
+function selectDevice(uuid) {
+
+    uuid = String(uuid || "");
+
+    cancelPolling();
+
+    state.uuid = uuid;
+    state.path = "/";
+    state.dirCache.clear();
+
+    els.deviceSelect.value = uuid;
+    els.mobileDeviceSelect.value = uuid;
+
+    updateDeviceCard();
+
+    if (!uuid) {
+
+        els.backBtn.disabled = true;
+        els.refreshBtn.disabled = true;
+        els.galleryViewBtn.disabled = true;
+
+        els.locationTitle.textContent = "Files";
+        els.locationDescription.textContent =
+            "Select a device to begin";
+
+        renderBreadcrumb("/");
+
+        showInitialState();
+
+        return;
+    }
+
+    const device = state.devices.find(
+        item => String(item.uuid) === uuid
+    );
+
+    if (device && !device.online) {
+
+        showToast(
+            "This device is currently offline.",
+            "error"
+        );
+
+        showDeviceOfflineState();
+
+        return;
+    }
+
+    els.galleryViewBtn.disabled = false;
+
+    browse("/");
+}
+
+
+function updateDeviceCard() {
+
+    if (!state.uuid) {
+
+        els.deviceName.textContent =
+            "No device selected";
+
+        els.deviceStatus.className =
+            "device-status";
+
+        els.deviceStatus.innerHTML = '<span class="device-status-dot"></span><span>Waiting…</span>';
+
+        return;
+    }
+
+
+    const device = state.devices.find(
+        item => String(item.uuid) === state.uuid
+    );
+
+
+    if (!device) {
+
+        els.deviceName.textContent =
+            "Unknown device";
+
+        els.deviceStatus.className =
+            "device-status";
+
+        els.deviceStatus.innerHTML = '<span class="device-status-dot"></span><span>Unknown</span>';
+
+        return;
+    }
+
+
+    const online = Boolean(device.online);
+
+    els.deviceName.textContent =
+        device.model || "Unknown device";
+
+    els.deviceStatus.className = 'device-status ' + (online ? 'online' : 'offline');
+    els.deviceStatus.innerHTML = '<span>' + (online ? 'Online' : 'Offline') + '</span>';
+}
+
+
+function showDeviceOfflineState() {
+
+    els.fileList.innerHTML = "";
+
+    els.fileList.appendChild(
+        createState(
+            "fa-plug-circle-xmark",
+            "Device offline",
+            "The selected device is not currently connected."
+        )
+    );
+}
+
+
+/* ================================================================
+   FILE BROWSING
+================================================================ */
+
+async function browse(path, isRefresh = false) {
+
+    if (!state.uuid) {
+        return;
+    }
+
+    path = normalizePath(path);
+
+    cancelPolling();
+
+    const requestId = ++state.browseRequestId;
+
+    state.path = path;
+
+    updateNavigationUI();
+    renderBreadcrumb(path);
+
+    els.locationTitle.textContent =
+        getPathName(path);
+
+    els.locationDescription.textContent =
+        path === "/"
+            ? "Device root directory"
+            : path;
+
+
+    /*
+     * Cache hit — render instantly without contacting the device.
+     * Only explicit refresh (↻ button) bypasses the cache.
+     */
+    const cacheKey = state.uuid + "::" + path;
+
+    if (!isRefresh && state.dirCache.has(cacheKey)) {
+        renderFiles(state.dirCache.get(cacheKey));
+        return;
+    }
+
+
+    showLoadingState(
+        isRefresh
+            ? "Refreshing files…"
+            : "Loading files…"
+    );
+
+
+    try {
+
+        /*
+         * First request tells the device to list this path.
+         */
+        await request(
+            buildUrl(
+                CONFIG.endpoints.listFiles,
+                {
+                    uuid: state.uuid,
+                    path
+                }
+            ),
+            {
+                method: "GET"
+            }
+        );
+
+
+        /*
+         * Poll for the device response.
+         */
+        const result =
+            await pollForFiles(
+                requestId
+            );
+
+
+        /*
+         * Ignore stale results.
+         */
+        if (
+            requestId !== state.browseRequestId ||
+            state.path !== path ||
+            state.uuid === ""
+        ) {
+            return;
+        }
+
+
+        if (!result) {
+
+            showErrorState(
+                "No response",
+                "The device did not return a file listing."
+            );
+
+            return;
+        }
+
+
+        /*
+         * Cache the result so back-navigation is instant.
+         */
+        state.dirCache.set(cacheKey, result);
+
+        renderFiles(result);
+
+
+    } catch (error) {
+
+        if (error.name === "AbortError") {
+            return;
+        }
+
+        console.error("Browse failed:", error);
+
+        showErrorState(
+            "Unable to load files",
+            error.message || "Something went wrong."
+        );
+    }
+}
+
+
+/* ================================================================
+   FILE POLLING
+================================================================ */
+
+async function pollForFiles(requestId) {
+
+    let attempts = 0;
+
+    while (
+        attempts < CONFIG.maxFilePolls
+    ) {
+
+        if (
+            requestId !== state.browseRequestId
+        ) {
+            return null;
+        }
+
+        const delay =
+            CONFIG.filePollIntervals[
+                Math.min(
+                    attempts,
+                    CONFIG.filePollIntervals.length - 1
+                )
+            ];
+
+        await sleep(delay);
+
+        attempts++;
+
+
+        try {
+
+            const data =
+                await request(
+                    CONFIG.endpoints.getFiles(state.uuid),
+                    {
+                        method: "GET",
+                        timeout: 7000
+                    }
+                );
+
+
+            /*
+             * The original backend returns 'files'
+             * when the device has responded.
+             */
+            if (
+                data &&
+                typeof data.files === "string"
+            ) {
+                return data.files;
+            }
+
+        } catch (error) {
+
+            /*
+             * A single failed poll shouldn't immediately
+             * kill the entire browse operation.
+             */
+            console.debug(
+                "File polling attempt failed:",
+                error.message
+            );
+        }
+    }
+
+    return null;
+}
+
+
+/* ================================================================
+   RENDER FILES
+================================================================ */
+
+function renderFiles(text) {
+
+    els.fileList.innerHTML = "";
+    updateFetchSelectedBtn();
+
+    const lines =
+        String(text || "")
+            .replace(/\r/g, "")
+            .split("\n")
+            .map(line => line.trim())
+            .filter(Boolean);
+
+
+    /*
+     * Parent directory item.
+     */
+    if (state.path !== "/") {
+
+        const parent =
+            createFileItem(
+                "..",
+                true,
+                "fa-arrow-up",
+                "Parent directory"
+            );
+
+        parent.addEventListener(
+            "click",
+            () => {
+
+                const parts =
+                    state.path
+                        .split("/")
+                        .filter(Boolean);
+
+                parts.pop();
+
+                browse(
+                    parts.length
+                        ? "/" + parts.join("/")
+                        : "/"
+                );
+            }
+        );
+
+        els.fileList.appendChild(parent);
+    }
+
+
+    let itemCount = 0;
+
+
+    for (const line of lines) {
+
+        let isDir = false;
+
+        if (line.includes("[DIR]")) {
+            isDir = true;
+        } else if (!line.includes("[FILE]")) {
+            continue;
+        }
+
+
+        const name =
+            line
+                .replace("[DIR]", "")
+                .replace("[FILE]", "")
+                .trim();
+
+
+        if (!name) {
+            continue;
+        }
+
+
+        itemCount++;
+
+
+        if (isDir) {
+
+            const item =
+                createFileItem(
+                    name,
+                    true,
+                    "fa-folder",
+                    "Folder"
+                );
+
+
+            item.addEventListener(
+                "click",
+                () => {
+
+                    const nextPath =
+                        joinPath(
+                            state.path,
+                            name
+                        );
+
+                    browse(nextPath);
+                }
+            );
+
+
+            els.fileList.appendChild(item);
+
+        } else {
+
+            const item =
+                createFileItem(
+                    name,
+                    false,
+                    getFileIcon(name),
+                    getFileType(name)
+                );
+
+
+            const actions = document.createElement("div");
+            actions.className = "item-actions";
+
+            const pbtn = document.createElement("button");
+            pbtn.className = "preview-btn";
+            pbtn.innerHTML = '<i class="fas fa-eye"></i>';
+            pbtn.title = "Preview";
+            pbtn.onclick = (e) => { e.stopPropagation(); previewFile(name, pbtn); };
+
+            const button =
+                document.createElement("button");
+
+            button.type = "button";
+            button.className = "fetch-btn";
+            button.textContent = "Fetch";
+
+            button.addEventListener(
+                "click",
+                event => {
+
+                    event.stopPropagation();
+
+                    fetchFile(
+                        name,
+                        button
+                    );
+                }
+            );
+
+            actions.appendChild(pbtn);
+            actions.appendChild(button);
+
+            item.appendChild(actions);
+
+            els.fileList.appendChild(item);
+        }
+    }
+
+
+    if (itemCount === 0) {
+
+        /*
+         * Remove parent item if this is a genuinely empty root.
+         */
+        if (state.path === "/") {
+
+            showEmptyState();
+
+        } else if (els.fileList.children.length === 0) {
+
+            showEmptyState();
+        }
+    }
+}
+
+
+/* ================================================================
+   CREATE FILE ITEM
+================================================================ */
+
+function createFileItem(
+    name,
+    isDirectory,
+    icon,
+    type
+) {
+
+    const item =
+        document.createElement("div");
+
+    item.className =
+        item.className = 'item ' + (isDirectory ? 'dir' : 'file');
+
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.className = "file-checkbox";
+    checkbox.dataset.path = joinPath(state.path, name);
+    checkbox.onclick = (e) => {
+        e.stopPropagation();
+        updateFetchSelectedBtn();
+    };
+    item.appendChild(checkbox);
+
+    const iconBox =
+        document.createElement("div");
+
+    iconBox.className = "item-icon";
+
+
+    const iconElement =
+        document.createElement("i");
+
+    iconElement.className = 'fas ' + icon;
+
+
+    iconBox.appendChild(iconElement);
+
+
+    const info =
+        document.createElement("div");
+
+    info.className = "item-info";
+
+
+    const nameElement =
+        document.createElement("div");
+
+    nameElement.className = "item-name";
+    nameElement.textContent = name;
+
+
+    const typeElement =
+        document.createElement("div");
+
+    typeElement.className = "item-type";
+    typeElement.textContent = type;
+
+
+    info.appendChild(nameElement);
+    info.appendChild(typeElement);
+
+
+    item.appendChild(iconBox);
+    item.appendChild(info);
+
+
+    return item;
+}
+
+
+/* ================================================================
+   FILE TYPE HELPERS
+================================================================ */
+
+function getFileIcon(name) {
+
+    const ext =
+        getExtension(name);
+
+    const icons = {
+
+        mp4: "fa-file-video",
+        mkv: "fa-file-video",
+        avi: "fa-file-video",
+        mov: "fa-file-video",
+        webm: "fa-file-video",
+
+        mp3: "fa-file-audio",
+        wav: "fa-file-audio",
+        m4a: "fa-file-audio",
+        flac: "fa-file-audio",
+
+        jpg: "fa-file-image",
+        jpeg: "fa-file-image",
+        png: "fa-file-image",
+        gif: "fa-file-image",
+        webp: "fa-file-image",
+
+        zip: "fa-file-zipper",
+        rar: "fa-file-zipper",
+        "7z": "fa-file-zipper",
+        tar: "fa-file-zipper",
+        gz: "fa-file-zipper",
+
+        pdf: "fa-file-pdf",
+
+        apk: "fa-box-archive",
+
+        txt: "fa-file-lines",
+        log: "fa-file-lines",
+
+        js: "fa-file-code",
+        json: "fa-file-code",
+        html: "fa-file-code",
+        css: "fa-file-code",
+
+        doc: "fa-file-word",
+        docx: "fa-file-word",
+
+        xls: "fa-file-excel",
+        xlsx: "fa-file-excel",
+
+        ppt: "fa-file-powerpoint",
+        pptx: "fa-file-powerpoint"
+    };
+
+    return icons[ext] || "fa-file";
+}
+
+
+function getFileType(name) {
+
+    const ext =
+        getExtension(name);
+
+    if (!ext) {
+        return "File";
+    }
+
+    return ext.toUpperCase() + ' file';
+}
+
+
+function getExtension(name) {
+
+    const clean =
+        String(name)
+            .split("?")[0]
+            .split("#")[0];
+
+    const index =
+        clean.lastIndexOf(".");
+
+    if (
+        index <= 0 ||
+        index === clean.length - 1
+    ) {
+        return "";
+    }
+
+    return clean
+        .slice(index + 1)
+        .toLowerCase();
+}
+
+
+/* ================================================================
+   FETCH FILE
+================================================================ */
+
+async function fetchFile(name, button) {
+
+    if (!state.uuid) {
+        return;
+    }
+
+
+    const requestId =
+        ++state.fetchRequestId;
+
+
+    const path =
+        joinPath(
+            state.path,
+            name
+        );
+
+
+    const originalText =
+        button.textContent;
+
+
+    cancelFetchPolling();
+
+
+    button.disabled = true;
+    button.innerHTML =
+        els.refreshBtn.innerHTML = '<i class="fas fa-spinner spinner"></i>';
+
+
+    try {
+
+        /*
+         * Clear previous result first.
+         */
+        await request(
+            CONFIG.endpoints.clearLatest(state.uuid),
+            {
+                method: "GET"
+            }
+        );
+
+
+        /*
+         * Ask the device to fetch the file.
+         */
+        await request(
+            buildUrl(
+                CONFIG.endpoints.fetchMedia,
+                {
+                    uuid: state.uuid,
+                    path
+                }
+            ),
+            {
+                method: "GET"
+            }
+        );
+
+
+        showToast(
+            "Fetching file from device…",
+            "info"
+        );
+
+
+        /*
+         * Wait for the resulting URL.
+         */
+        const fileUrl =
+            await pollForFetchedFile(
+                requestId
+            );
+
+
+        if (
+            requestId !== state.fetchRequestId
+        ) {
+            return;
+        }
+
+
+        if (!fileUrl) {
+
+            throw new Error(
+                "The device did not return the file."
+            );
+        }
+
+
+        /*
+         * Open only the URL returned by your backend.
+         */
+        window.open(
+            fileUrl,
+            "_blank",
+            "noopener,noreferrer"
+        );
+
+
+        showToast(
+            "File is ready.",
+            "success"
+        );
+
+
+    } catch (error) {
+
+        if (error.name !== "AbortError") {
+
+            console.error(
+                "Fetch failed:",
+                error
+            );
+
+            showToast(
+                error.message ||
+                "Unable to fetch file.",
+                "error"
+            );
+        }
+
+    } finally {
+
+        button.disabled = false;
+        button.textContent = originalText;
+    }
+}
+
+
+/* ================================================================
+   FETCH RESULT POLLING
+================================================================ */
+
+async function pollForFetchedFile(requestId) {
+
+    for (
+        let attempt = 0;
+        attempt < CONFIG.maxFetchPolls;
+        attempt++
+    ) {
+
+        if (
+            requestId !== state.fetchRequestId
+        ) {
+            return null;
+        }
+
+
+        /*
+         * Start fast, then slow down.
+         */
+        const delay =
+            attempt < 5
+                ? 1000
+                : 1800;
+
+
+        await sleep(delay);
+
+
+        try {
+
+            const data =
+                await request(
+                    CONFIG.endpoints.getLatest(
+                        state.uuid
+                    ),
+                    {
+                        method: "GET",
+                        timeout: 7000
+                    }
+                );
+
+
+            if (
+                data &&
+                data.fileUrl
+            ) {
+                return String(
+                    data.fileUrl
+                );
+            }
+
+        } catch (error) {
+
+            console.debug(
+                "Fetch polling error:",
+                error.message
+            );
+        }
+    }
+
+
+    return null;
+}
+
+
+/* ================================================================
+   BREADCRUMBS
+================================================================ */
+
+function renderBreadcrumb(path) {
+
+    els.breadcrumb.innerHTML = "";
+
+    const home =
+        document.createElement("button");
+
+    home.type = "button";
+    home.className = "breadcrumb-home";
+    home.title = "Root";
+    home.setAttribute(
+        "aria-label",
+        "Root"
+    );
+
+    home.innerHTML = '<i class="fas fa-house"></i>';
+
+    home.addEventListener(
+        "click",
+        () => browse("/")
+    );
+
+    els.breadcrumb.appendChild(home);
+
+
+    if (path === "/") {
+        return;
+    }
+
+
+    const parts =
+        path
+            .split("/")
+            .filter(Boolean);
+
+
+    let accumulated = "";
+
+
+    parts.forEach(
+        (part, index) => {
+
+            accumulated += "/" + part;
+
+
+            const separator =
+                document.createElement("span");
+
+            separator.className =
+                "breadcrumb-separator";
+
+            separator.innerHTML = '<i class="fas fa-chevron-right"></i>';
+
+            els.breadcrumb.appendChild(
+                separator
+            );
+
+
+            const button =
+                document.createElement("button");
+
+            button.type = "button";
+            button.className =
+                "breadcrumb-part";
+
+
+            const isCurrent =
+                index === parts.length - 1;
+
+
+            if (isCurrent) {
+
+                button.classList.add(
+                    "current"
+                );
+
+                button.textContent =
+                    part;
+
+            } else {
+
+                button.textContent =
+                    part;
+
+                const target =
+                    accumulated;
+
+                button.addEventListener(
+                    "click",
+                    () => browse(target)
+                );
+            }
+
+
+            els.breadcrumb.appendChild(
+                button
+            );
+        }
+    );
+}
+
+
+/* ================================================================
+   NAVIGATION UI
+================================================================ */
+
+function updateNavigationUI() {
+
+    els.backBtn.disabled =
+        !state.uuid ||
+        state.path === "/";
+
+    els.refreshBtn.disabled =
+        !state.uuid;
+}
+
+
+/* ================================================================
+   PATH HELPERS
+================================================================ */
+
+function normalizePath(path) {
+
+    if (!path) {
+        return "/";
+    }
+
+    path = String(path);
+
+    if (!path.startsWith("/")) {
+        path = "/" + path;
+    }
+
+    path =
+        path.replace(
+            new RegExp("/+", "g"),
+            "/"
+        );
+
+    if (
+        path.length > 1 &&
+        path.endsWith("/")
+    ) {
+        path = path.slice(0, -1);
+    }
+
+    return path;
+}
+
+
+function joinPath(base, name) {
+
+    base =
+        normalizePath(base);
+
+    name =
+        String(name)
+            .replace(new RegExp("^/+", "g"), "")
+            .replace(new RegExp("/+$", "g"), "");
+
+    if (base === "/") {
+        return normalizePath(
+            "/" + name
+        );
+    }
+
+    return normalizePath(base + "/" + name);
+}
+
+
+function getPathName(path) {
+
+    if (path === "/") {
+        return "Root";
+    }
+
+    const parts =
+        path
+            .split("/")
+            .filter(Boolean);
+
+    return parts[
+        parts.length - 1
+    ] || "Root";
+}
+
+
+/* ================================================================
+   UI STATES
+================================================================ */
+
+function showInitialState() {
+
+    els.fileList.innerHTML = "";
+
+    els.fileList.appendChild(
+        createState(
+            "fa-mobile-screen-button",
+            "Connect a device",
+            "Select an online device to explore its files."
+        )
+    );
+}
+
+
+function showLoadingState(message) {
+
+    els.fileList.innerHTML = "";
+
+    els.fileList.appendChild(
+        createState(
+            "fa-spinner spinner",
+            message,
+            "Waiting for a response from the device."
+        )
+    );
+}
+
+
+function showEmptyState() {
+
+    els.fileList.innerHTML = "";
+
+    els.fileList.appendChild(
+        createState(
+            "fa-folder-open",
+            "Folder is empty",
+            "There are no files or folders to display here."
+        )
+    );
+}
+
+
+function showErrorState(
+    title,
+    description
+) {
+
+    els.fileList.innerHTML = "";
+
+    els.fileList.appendChild(
+        createState(
+            "fa-triangle-exclamation",
+            title,
+            description
+        )
+    );
+}
+
+
+function createState(
+    icon,
+    title,
+    description
+) {
+
+    const wrapper =
+        document.createElement("div");
+
+    wrapper.className = "state";
+
+
+    const box =
+        document.createElement("div");
+
+    box.className = "state-box";
+
+
+    const iconBox =
+        document.createElement("div");
+
+    iconBox.className = "state-icon";
+
+
+    const iconElement =
+        document.createElement("i");
+
+    iconElement.className = 'fas ' + icon;
+
+
+    iconBox.appendChild(
+        iconElement
+    );
+
+
+    const titleElement =
+        document.createElement("div");
+
+    titleElement.className =
+        "state-title";
+
+    titleElement.textContent =
+        title;
+
+
+    const descriptionElement =
+        document.createElement("div");
+
+    descriptionElement.className =
+        "state-description";
+
+    descriptionElement.textContent =
+        description;
+
+
+    box.appendChild(iconBox);
+    box.appendChild(titleElement);
+    box.appendChild(descriptionElement);
+
+    wrapper.appendChild(box);
+
+    return wrapper;
+}
+
+
+/* ================================================================
+   TOAST
+================================================================ */
+
+function showToast(
+    message,
+    type = "info"
+) {
+
+    const toast =
+        document.createElement("div");
+
+    toast.className = 'toast ' + type;
+
+
+    const icon =
+        document.createElement("i");
+
+    icon.className =
+        type === "success"
+            ? "fas fa-circle-check"
+            : type === "error"
+                ? "fas fa-circle-exclamation"
+                : "fas fa-circle-info";
+
+
+    const text =
+        document.createElement("span");
+
+    text.textContent =
+        message;
+
+
+    toast.appendChild(icon);
+    toast.appendChild(text);
+
+
+    els.toastContainer.appendChild(
+        toast
+    );
+
+
+    setTimeout(
+        () => {
+
+            toast.style.opacity = "0";
+            toast.style.transform =
+                "translateY(6px)";
+
+            toast.style.transition =
+                "opacity .2s ease, transform .2s ease";
+
+
+            setTimeout(
+                () => toast.remove(),
+                220
+            );
+
+        },
+        3500
+    );
+}
+
+
+/* ================================================================
+   NETWORK REQUEST
+================================================================ */
+
+async function request(
+    url,
+    options = {}
+) {
+
+    const controller =
+        new AbortController();
+
+    state.abortControllers.add(
+        controller
+    );
+
+
+    const timeout =
+        options.timeout ||
+        CONFIG.requestTimeoutMs;
+
+
+    const timer =
+        setTimeout(
+            () => controller.abort(),
+            timeout
+        );
+
+
+    try {
+
+        const response =
+            await fetch(
+                url,
+                {
+                    ...options,
+                    signal:
+                        controller.signal,
+
+                    cache: "no-store"
+                }
+            );
+
+
+        if (!response.ok) {
+            throw new Error('Server returned HTTP ' + response.status);
+        }
+
+
+        const contentType =
+            response.headers.get(
+                "content-type"
+            ) || "";
+
+
+        if (
+            contentType.includes(
+                "application/json"
+            )
+        ) {
+            return await response.json();
+        }
+
+
+        /*
+         * Some endpoints may return an empty body.
+         */
+        const text =
+            await response.text();
+
+
+        if (!text) {
+            return {};
+        }
+
+
+        try {
+            return JSON.parse(text);
+        } catch {
+            return {
+                text
+            };
+        }
+
+    } finally {
+
+        clearTimeout(timer);
+
+        state.abortControllers.delete(
+            controller
+        );
+    }
+}
+
+
+/* ================================================================
+   POLLING / CLEANUP
+================================================================ */
+
+function cancelPolling() {
+
+    state.browseRequestId++;
+
+    state.fetchRequestId++;
+
+    cancelFetchPolling();
+
+    for (
+        const controller
+        of state.abortControllers
+    ) {
+        controller.abort();
+    }
+
+    state.abortControllers.clear();
+}
+
+
+function cancelFetchPolling() {
+
+    if (state.filePollTimer) {
+
+        clearTimeout(
+            state.filePollTimer
+        );
+
+        state.filePollTimer = null;
+    }
+
+    if (state.fetchPollTimer) {
+
+        clearTimeout(
+            state.fetchPollTimer
+        );
+
+        state.fetchPollTimer = null;
+    }
+}
+
+
+/* ================================================================
+   UTILITIES
+================================================================ */
+
+function sleep(ms) {
+
+    return new Promise(
+        resolve => setTimeout(
+            resolve,
+            ms
+        )
+    );
+}
+
+
+function buildUrl(
+    base,
+    params
+) {
+
+    const url =
+        new URL(
+            base,
+            window.location.origin
+        );
+
+
+    Object.entries(params)
+        .forEach(
+            ([key, value]) => {
+
+                url.searchParams.set(
+                    key,
+                    value
+                );
+            }
+        );
+
+
+    return url.toString();
+}
+
+
+/* ================================================================
+   CLEANUP
+================================================================ */
+
+window.addEventListener(
+    "beforeunload",
+    () => {
+
+        if (state.deviceRefreshTimer) {
+
+            clearInterval(
+                state.deviceRefreshTimer
+            );
+        }
+
+        cancelPolling();
+    }
+);
+
+/* ================================================================
+   PREVIEW LOGIC
+================================================================ */
+
+async function previewFile(name, button) {
+    if (!state.uuid) return;
+    const requestId = ++state.fetchRequestId;
+    const path = joinPath(state.path, name);
+    const originalContent = button.innerHTML;
+
+    cancelFetchPolling();
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    try {
+        await request(CONFIG.endpoints.clearLatest(state.uuid), { method: "GET" });
+        await request(buildUrl(CONFIG.endpoints.fetchMedia, { uuid: state.uuid, path }), { method: "GET" });
+
+        showToast("Fetching preview content...", "info");
+        const fileUrl = await pollForFetchedFile(requestId);
+        if (requestId !== state.fetchRequestId) return;
+
+        if (!fileUrl) throw new Error("Preview failed to load.");
+
+        showPreview(name, fileUrl);
+    } catch (error) {
+        if (error.name !== "AbortError") showToast(error.message, "error");
+    } finally {
+        button.disabled = false;
+        button.innerHTML = originalContent;
+    }
+}
+
+function showPreview(name, url) {
+    const modal = $('previewModal');
+    const body = $('previewBody');
+    const title = $('previewTitle');
+    const dlBtn = $('previewDownloadBtn');
+
+    title.textContent = name;
+    body.innerHTML = '';
+    dlBtn.onclick = () => window.open(url, '_blank');
+
+    const ext = getExtension(name);
+    const imgExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    const vidExts = ['mp4', 'webm', 'mkv', 'mov'];
+    const audExts = ['mp3', 'wav', 'm4a', 'flac'];
+    const txtExts = ['txt', 'log', 'js', 'json', 'html', 'css', 'py', 'sh', 'xml'];
+
+    if (imgExts.includes(ext)) {
+        body.innerHTML = '<img src="' + url + '" class="preview-media">';
+    } else if (vidExts.includes(ext)) {
+        body.innerHTML = '<video src="' + url + '" class="preview-media" controls autoplay></video>';
+    } else if (audExts.includes(ext)) {
+        body.innerHTML = '<audio src="' + url + '" class="preview-media" controls autoplay style="width:80%"></audio>';
+    } else if (txtExts.includes(ext)) {
+        fetch(url).then(r => r.text()).then(text => {
+            body.innerHTML = '<pre class="preview-text">' + escapeHTML(text) + '</pre>';
+        }).catch(() => {
+            body.innerHTML = '<div class="state-description">Unable to load text content</div>';
+        });
+    } else {
+        body.innerHTML = '<div class="state-description">Preview not available for this file type.</div>';
+    }
+
+    modal.style.display = 'flex';
+}
+
+function closePreview() {
+    $('previewModal').style.display = 'none';
+    $('previewBody').innerHTML = '';
+}
+
+function escapeHTML(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+
+/* ================================================================
+   GALLERY VIEW
+   Step 1 – Folder picker (preset chips + custom path)
+   Step 2 – Recursive list → fetch-media per image → 5 MB filter
+================================================================ */
+
+const GALLERY_IMG_EXTS  = new Set(['jpg','jpeg','png','webp','gif','bmp']);
+const GALLERY_MAX_SIZE  = 5 * 1024 * 1024;   // 5 MB
+const GALLERY_MAX_DEPTH = 4;                  // subfolder recursion depth
+
+/* ── STEP 1: Open picker ───────────────────────────────────────── */
+
+function openGallery() {
+    if (!state.uuid) return;
+
+    // Reset
+    state.galleryOpen    = true;
+    state.galleryAborted = false;
+    state.galleryImages  = [];
+    state.galleryTotal   = 0;
+
+    // Show modal in picker step
+    $('galleryModal').classList.add('active');
+    $('galleryPicker').style.display = 'flex';
+    $('galleryBody').style.display   = 'none';
+    $('galleryStatusBadge').style.display = 'none';
+
+    const device = state.devices.find(d => String(d.uuid) === state.uuid);
+    $('gallerySubtitle').textContent = device ? (device.model || 'Device') : 'Device';
+
+    // Wire preset chips
+    document.querySelectorAll('.gallery-preset').forEach(btn => {
+        btn.onclick = () => {
+            document.querySelectorAll('.gallery-preset').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            $('galleryCustomPath').value = '';   // clear custom when chip selected
+        };
+    });
+
+    // Typing in custom clears chip selection
+    $('galleryCustomPath').oninput = () => {
+        if ($('galleryCustomPath').value.trim()) {
+            document.querySelectorAll('.gallery-preset').forEach(b => b.classList.remove('active'));
+        }
+    };
+
+    // Start button
+    $('galleryStartBtn').onclick = startGalleryFetch;
+}
+
+
+/* ── STEP 2: Start fetching after user clicks "Start Fetching" ─── */
+
+async function startGalleryFetch() {
+
+    // Determine chosen path
+    const custom   = ($('galleryCustomPath').value || '').trim();
+    const activeChip = document.querySelector('.gallery-preset.active');
+    const rootPath = custom || (activeChip ? activeChip.dataset.path : '/DCIM/Camera');
+    const recursive = $('galleryRecursive').checked;
+
+    // Switch UI to grid step
+    $('galleryPicker').style.display = 'none';
+    $('galleryBody').style.display   = 'flex';
+    $('galleryBody').style.flexDirection = 'column';
+    $('galleryStatusBadge').style.display = 'flex';
+
+    $('galleryStartBtn').disabled = true;
+    setGalleryBadge('loading', 'Scanning\u2026');
+    renderGalleryBody(true, 'Scanning ' + rootPath, 'Collecting image paths\u2026');
+
+    showToast('Scanning ' + rootPath + '\u2026', 'info');
+
+    // ── Phase 1: collect all image full-paths via recursive listing ──
+    const imagePaths = [];
+    await galleryCollectPaths(rootPath, recursive ? GALLERY_MAX_DEPTH : 0, imagePaths);
+
+    if (!state.galleryOpen) return;
+
+    if (imagePaths.length === 0) {
+        setGalleryBadge('done', 'No images found');
+        renderGalleryBody(false, 'No images found',
+            'No image files were listed in ' + rootPath + '.');
+        return;
+    }
+
+    state.galleryTotal = imagePaths.length;
+    setGalleryBadge('loading', '0 / ' + imagePaths.length + ' fetched\u2026');
+    renderGalleryBody(true, 'Fetching images',
+        '0 of ' + imagePaths.length + ' fetched (< 5 MB only)');
+
+    // ── Phase 2: fetch each image one-by-one ──
+    await galleryFetchAll(imagePaths);
+
+    if (!state.galleryOpen) return;
+
+    const count = state.galleryImages.length;
+    setGalleryBadge('done',
+        count + (count === 1 ? ' image' : ' images') + ' loaded');
+
+    if (count === 0) {
+        renderGalleryBody(false, 'No images loaded',
+            'All files were either > 5 MB, timed out, or failed to transfer.');
+    } else {
+        renderGalleryGrid(false);
+    }
+}
+
+
+/* ── Recursive directory lister ───────────────────────────────── */
+
+/*
+ * Recursively lists `dirPath` and pushes full image file paths into
+ * `out`. Follows [DIR] entries up to `depth` levels deep.
+ */
+async function galleryCollectPaths(dirPath, depth, out) {
+
+    if (!state.galleryOpen) return;
+
+    setGalleryBadge('loading', 'Listing ' + dirPath + '\u2026');
+
+    const listing = await galleryListDir(dirPath);
+    if (!listing) return;
+
+    const { images, dirs } = parseGalleryListing(listing, dirPath);
+
+    for (const imgPath of images) out.push(imgPath);
+
+    if (depth > 0) {
+        for (const subDir of dirs) {
+            if (!state.galleryOpen) return;
+            await galleryCollectPaths(subDir, depth - 1, out);
+        }
+    }
+}
+
+
+/*
+ * Calls list-files for one directory and polls get-files.
+ * Returns raw listing text or null on timeout.
+ */
+async function galleryListDir(dirPath) {
+
+    try {
+        await request(
+            buildUrl(CONFIG.endpoints.listFiles, { uuid: state.uuid, path: dirPath }),
+            { method: 'GET' }
+        );
+    } catch (e) { return null; }
+
+    const MAX = 25;
+    for (let i = 0; i < MAX; i++) {
+        if (!state.galleryOpen) return null;
+        await sleep(CONFIG.filePollIntervals[Math.min(i, CONFIG.filePollIntervals.length - 1)]);
+        try {
+            const data = await request(
+                CONFIG.endpoints.getFiles(state.uuid),
+                { method: 'GET', timeout: 7000 }
+            );
+            if (data && typeof data.files === 'string') return data.files;
+        } catch (e) {}
+    }
+    return null;
+}
+
+
+/*
+ * Parses listing text, returns { images: [fullPath,...], dirs: [fullPath,...] }
+ */
+function parseGalleryListing(text, basePath) {
+    const base   = basePath.replace(/\/+$/, '');
+    const images = [];
+    const dirs   = [];
+
+    String(text || '').replace(/\r/g, '').split('\n').forEach(line => {
+        line = line.trim();
+        if (!line) return;
+
+        if (line.includes('[DIR]')) {
+            const name = line.replace('[DIR]', '').trim();
+            if (name && name !== '..' && name !== '.') {
+                dirs.push(base + '/' + name);
+            }
+        } else if (line.includes('[FILE]')) {
+            const name = line.replace('[FILE]', '').trim();
+            if (!name) return;
+            const ext = name.split('.').pop().toLowerCase();
+            if (GALLERY_IMG_EXTS.has(ext)) {
+                images.push(base + '/' + name);
+            }
+        }
+    });
+
+    return { images, dirs };
+}
+
+
+/* ── Sequential fetcher ───────────────────────────────────────── */
+
+async function galleryFetchAll(imagePaths) {
+
+    for (let i = 0; i < imagePaths.length; i++) {
+        if (!state.galleryOpen) return;
+
+        const fullPath = imagePaths[i];
+        const name     = fullPath.split('/').pop();
+
+        setGalleryBadge('loading',
+            (state.galleryImages.length) + ' / ' + imagePaths.length + ' fetched\u2026');
+
+        updateGalleryLoadingText(
+            'Fetching images (' + (i + 1) + ' of ' + imagePaths.length + ')',
+            state.galleryImages.length + ' images loaded so far'
+        );
+
+        const result = await galleryFetchOne(fullPath, name);
+
+        if (!state.galleryOpen) return;
+
+        if (result) {
+            state.galleryImages.push(result);
+            renderGalleryGrid(true);
+        }
+    }
+}
+
+
+/*
+ * Fetches one image via fetch-media, polls for URL, then HEAD-checks size.
+ * Returns { url, name, path, size } or null if > 5 MB / timeout / fail.
+ */
+async function galleryFetchOne(filePath, name) {
+
+    try {
+        await request(CONFIG.endpoints.clearLatest(state.uuid), { method: 'GET' });
+        await request(
+            buildUrl(CONFIG.endpoints.fetchMedia, { uuid: state.uuid, path: filePath }),
+            { method: 'GET' }
+        );
+    } catch (e) { return null; }
+
+    // Poll for the uploaded URL (max ~36 s per image)
+    const MAX = 20;
+    for (let i = 0; i < MAX; i++) {
+        if (!state.galleryOpen) return null;
+        await sleep(i < 6 ? 1000 : 2000);
+        try {
+            const data = await request(
+                CONFIG.endpoints.getLatest(state.uuid),
+                { method: 'GET', timeout: 7000 }
+            );
+            if (data && data.fileUrl) {
+                const url = String(data.fileUrl);
+
+                // ── 5 MB filter via HEAD request ──
+                const size = await getFileSize(url);
+                if (size !== null && size > GALLERY_MAX_SIZE) {
+                    console.debug('[Gallery] Skipped (> 5 MB):', name, formatFileSize(size));
+                    return null;
+                }
+
+                return { url, name, path: filePath, size: size || 0 };
+            }
+        } catch (e) {}
+    }
+
+    return null;
+}
+
+
+/*
+ * Returns file size in bytes via HEAD request, or null if unavailable.
+ */
+async function getFileSize(url) {
+    try {
+        const res = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+        const cl  = res.headers.get('content-length');
+        return cl ? parseInt(cl, 10) : null;
+    } catch (e) { return null; }
+}
+
+
+/* ── Render helpers ───────────────────────────────────────────── */
+
+function setGalleryBadge(type, text) {
+    const badge = $('galleryStatusBadge');
+    badge.className = 'gallery-status-badge ' + type;
+    $('galleryStatusText').textContent = text;
+}
+
+
+function renderGalleryBody(isFetching, title, sub) {
+    const body   = $('galleryBody');
+    const images = state.galleryImages;
+
+    if (images.length === 0) {
+        body.innerHTML = isFetching ? `
+            <div class="gallery-loading-state">
+                <div class="gallery-spinner-ring"></div>
+                <div>
+                    <div class="gallery-loading-text" id="galleryLoadingTitle">${escapeHTML(title || 'Loading\u2026')}</div>
+                    <div class="gallery-loading-sub"  id="galleryLoadingSub">${escapeHTML(sub   || 'Please wait')}</div>
+                </div>
+            </div>` : `
+            <div class="gallery-empty">
+                <i class="fas fa-image"></i>
+                <h3>${escapeHTML(title || 'No images found')}</h3>
+                <p>${escapeHTML(sub   || 'No images were returned.')}</p>
+            </div>`;
+        return;
+    }
+
+    renderGalleryGrid(isFetching);
+}
+
+
+function updateGalleryLoadingText(title, sub) {
+    const t = $('galleryLoadingTitle');
+    const s = $('galleryLoadingSub');
+    if (t) t.textContent = title;
+    if (s) s.textContent = sub;
+}
+
+
+function renderGalleryGrid(isFetching) {
+    const body      = $('galleryBody');
+    const images    = state.galleryImages;
+    const scrollTop = body.scrollTop;
+
+    body.innerHTML = '';
+
+    const grid = document.createElement('div');
+    grid.className = 'gallery-grid';
+
+    images.forEach((img, idx) => {
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        item.style.animationDelay = Math.min(idx * 18, 400) + 'ms';
+
+        // skeleton — hides via CSS when img gets .loaded
+        const skeleton = document.createElement('div');
+        skeleton.className = 'gallery-skeleton';
+
+        const imgEl = document.createElement('img');
+        imgEl.alt     = img.name;
+        imgEl.loading = 'lazy';
+        imgEl.onload  = () => imgEl.classList.add('loaded');
+        imgEl.onerror = () => { skeleton.style.display = 'none'; imgEl.style.opacity = '0.15'; };
+        imgEl.src     = img.url;   // set src after onload is wired
+
+        const overlay = document.createElement('div');
+        overlay.className = 'gallery-item-overlay';
+        overlay.innerHTML = `
+            <div class="gallery-item-name">${escapeHTML(img.name)}</div>
+            <div class="gallery-item-size">${formatFileSize(img.size)}</div>`;
+
+        item.appendChild(imgEl);
+        item.appendChild(skeleton);
+        item.appendChild(overlay);
+        item.addEventListener('click', () => openLightbox(img));
+        grid.appendChild(item);
+    });
+
+    body.appendChild(grid);
+    body.scrollTop = scrollTop;
+
+    if (isFetching) {
+        const footer = document.createElement('div');
+        footer.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:10px;padding:28px;color:var(--muted);font-size:.78rem;font-family:Montserrat,monospace;';
+        footer.innerHTML = '<i class="fas fa-spinner spinner"></i>&nbsp;Fetching next image…';
+        body.appendChild(footer);
+    }
+}
+
+
+/* ── Close / Lightbox ─────────────────────────────────────────── */
+
+function closeGallery() {
+    state.galleryOpen    = false;
+    state.galleryAborted = true;
+
+    $('galleryModal').classList.remove('active');
+    $('galleryBody').innerHTML  = '';
+    $('galleryPicker').style.display = 'flex';
+    $('galleryBody').style.display   = 'none';
+    $('galleryStatusBadge').style.display = 'none';
+    $('galleryStartBtn').disabled = false;
+    // Clear any active chip back to default
+    document.querySelectorAll('.gallery-preset').forEach((b, i) => {
+        b.classList.toggle('active', i === 0);
+    });
+    $('galleryCustomPath').value = '';
+}
+
+
+function openLightbox(img) {
+    $('lightboxImg').src          = img.url;
+    $('lightboxName').textContent = img.name;
+    $('lightboxDownload').onclick = () => window.open(img.url, '_blank', 'noopener,noreferrer');
+    $('galleryLightbox').classList.add('active');
+}
+
+
+function closeLightbox() {
+    $('galleryLightbox').classList.remove('active');
+    $('lightboxImg').src = '';
+}
+
+
+function formatFileSize(bytes) {
+    if (!bytes || bytes === 0) return '';
+    if (bytes < 1024)           return bytes + ' B';
+    if (bytes < 1024 * 1024)    return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+
+</script>
+
+</body>

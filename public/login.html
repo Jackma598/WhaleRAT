@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Whale RAT | Admin Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030303;
+            --fg: #f2f0ea;
+            --muted: #6b6b6b;
+            --line: #2a2a2a;
+            --danger: #ff3b30;
+            --blue: #58a6ff;
+            --green: #34d058;
+        }
+        * { box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; margin: 0; }
+        body {
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 39px, var(--line) 39px, var(--line) 40px),
+                repeating-linear-gradient(90deg, transparent, transparent 39px, var(--line) 39px, var(--line) 40px),
+                var(--bg);
+            background-size: 40px 40px, 40px 40px, 100% 100%;
+            color: var(--fg);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sheet {
+            width: 100%;
+            max-width: 380px;
+            background: var(--bg);
+            padding: 24px 28px 28px;
+            margin: 0 12px;
+        }
+        .rule { border: none; border-top: 1px solid var(--line); margin: 0; }
+        .file-no {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--muted);
+            padding: 16px 0 0;
+        }
+        .head { padding: 10px 0 30px; }
+        .head .kicker { font-size: 0.8rem; color: var(--muted); margin: 0 0 8px; }
+        .head h1 {
+            font-family: 'Newsreader', serif;
+            font-weight: 700;
+            font-size: 2.4rem;
+            margin: 0;
+            line-height: 1.05;
+        }
+
+        /* ── Biometric Button ── */
+        .bio-zone { padding: 24px 0 8px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+        .bio-btn {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            background: #0d0d0d;
+            border: 1.5px solid var(--line);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 30px;
+            transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s;
+            position: relative;
+            outline: none;
+        }
+        .bio-btn:hover:not(:disabled) {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 6px rgba(88,166,255,0.1);
+            transform: scale(1.06);
+        }
+        .bio-btn:active:not(:disabled) { transform: scale(0.96); }
+        .bio-btn.verifying { border-color: var(--blue); animation: pulse-ring 1.2s ease-in-out infinite; }
+        .bio-btn.success   { border-color: var(--green); box-shadow: 0 0 0 6px rgba(52,208,88,0.15); }
+        .bio-btn.fail      { border-color: var(--danger); box-shadow: 0 0 0 6px rgba(255,59,48,0.15); }
+        .bio-btn:disabled  { opacity: 0.4; cursor: not-allowed; }
+
+        @keyframes pulse-ring {
+            0%   { box-shadow: 0 0 0 0   rgba(88,166,255,0.4); }
+            70%  { box-shadow: 0 0 0 12px rgba(88,166,255,0); }
+            100% { box-shadow: 0 0 0 0   rgba(88,166,255,0); }
+        }
+
+        .bio-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            text-align: center;
+            min-height: 18px;
+            transition: color 0.2s;
+        }
+        .bio-label.ok   { color: var(--green); }
+        .bio-label.err  { color: var(--danger); }
+        .bio-label.info { color: var(--blue); }
+
+        .bio-hint {
+            font-size: 0.72rem;
+            color: var(--muted);
+            opacity: 0.6;
+        }
+
+        /* ── Divider with text ── */
+        .or-row {
+            display: flex; align-items: center; gap: 12px;
+            padding: 20px 0 4px;
+        }
+        .or-row hr { flex: 1; border: none; border-top: 1px solid var(--line); }
+        .or-row span { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
+
+        /* ── Form ── */
+        form { padding: 0; }
+        .field { margin-bottom: 22px; }
+        .field label { display: block; font-size: 0.82rem; color: white; margin-bottom: 10px; }
+        .field input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--line);
+            color: var(--fg);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            letter-spacing: 0.05em;
+            padding: 8px 2px 12px;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .field input:focus { border-color: var(--fg); }
+        .field input::placeholder { letter-spacing: normal; color: var(--muted); font-family: 'Inter', sans-serif; font-size: 0.92rem; }
+        #username { letter-spacing: normal; }
+        button[type=submit] {
+            width: 100%;
+            background: var(--fg);
+            color: #000;
+            border: none;
+            padding: 13px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        button[type=submit]:hover { background: #d8d5cc; }
+
+        .error-message { display: none; color: var(--danger); font-size: 0.82rem; margin: 14px 0 0; }
+
+        /* Collapsible form area */
+        .form-area { overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s ease; max-height: 0; opacity: 0; }
+        .form-area.visible { max-height: 400px; opacity: 1; }
+
+        .foot {
+            padding: 22px 0 4px;
+            font-size: 0.72rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .foot a { color: var(--muted); text-decoration: none; }
+        .foot a:hover { color: var(--fg); }
+
+        .show-form-link {
+            display: block;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--muted);
+            cursor: pointer;
+            padding: 10px 0 0;
+            transition: color 0.2s;
+            background: none;
+            border: none;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+        }
+        .show-form-link:hover { color: var(--fg); }
+        /* hide show-link when no passkeys available */
+        .hide { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="sheet">
+        <p class="file-no"></p>
+        <div class="head">
+            <center>
+            <p class="kicker">Admin authentication</p>
+            <img src="logo.png" style="width:100%;max-width:325px;height:auto;display:block;margin:0 auto;">
+            </center>
+        </div>
+        <hr class="rule">
+
+        <!-- ── Biometric / Passkey zone (shown only if passkeys registered) ── -->
+        <div class="bio-zone" id="bio-zone" style="display:none;">
+            <button class="bio-btn" id="bio-btn" onclick="triggerBiometric()" title="Touch ID / Windows Hello">
+                <span id="bio-icon">☝️</span>
+            </button>
+            <div class="bio-label" id="bio-label">Press Enter or tap to authenticate</div>
+            <div class="bio-hint" id="bio-hint">Touch ID · Face ID · Windows Hello · PIN</div>
+        </div>
+
+        <!-- Show password form fallback link -->
+        <button class="show-form-link" id="show-form-link" onclick="showForm()" style="display:none;">
+            Use password instead →
+        </button>
+
+        <!-- ── OR divider (only shown when biometric available) ── -->
+        <div class="or-row" id="or-row" style="display:none;">
+            <hr><span>or sign in with password</span><hr>
+        </div>
+
+        <!-- ── Standard username/password form ── -->
+        <div class="form-area" id="form-area">
+            <form method="post" action="/login" style="padding-top:16px;">
+                <div class="field">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Enter username" required autocomplete="username" autocapitalize="none" spellcheck="false">
+                </div>
+                <div class="field">
+                    <label for="code">Passkey / PIN</label>
+                    <input type="password" id="code" name="code" placeholder="Enter passkey" required autocomplete="current-password">
+                </div>
+                <button type="submit">Authenticate</button>
+                <div id="error-msg" class="error-message"></div>
+            </form>
+        </div>
+
+        <hr class="rule" style="margin-top:24px;">
+        <p class="foot">
+            <span>Whale RAT &copy;2026</span>
+            <a href="/admin">Admin Panel &rarr;</a>
+        </p>
+    </div>
+
+<script>
+(function() {
+    /* ── helpers ── */
+    function b64url(buf) {
+        return btoa(String.fromCharCode(...new Uint8Array(buf)))
+            .replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+    }
+    function fromB64url(s) {
+        s = s.replace(/-/g,'+').replace(/_/g,'/');
+        while (s.length % 4) s += '=';
+        return Uint8Array.from(atob(s), c => c.charCodeAt(0)).buffer;
+    }
+
+    const bioZone    = document.getElementById('bio-zone');
+    const bioBtn     = document.getElementById('bio-btn');
+    const bioIcon    = document.getElementById('bio-icon');
+    const bioLabel   = document.getElementById('bio-label');
+    const bioHint    = document.getElementById('bio-hint');
+    const orRow      = document.getElementById('or-row');
+    const formArea   = document.getElementById('form-area');
+    const showLink   = document.getElementById('show-form-link');
+    let   bioReady   = false;
+    let   running    = false;
+    let   loginOpts  = null;
+
+    /* ── Show error from query param ── */
+    const params = new URLSearchParams(window.location.search);
+    const err = params.get('error');
+    if (err) {
+        const el = document.getElementById('error-msg');
+        el.textContent = decodeURIComponent(err);
+        el.style.display = 'block';
+        showForm();  // auto-expand form on error
+    }
+
+    /* ── Probe for registered passkeys ── */
+    async function init() {
+        if (!window.PublicKeyCredential) return showFormOnly();
+
+        try {
+            const r = await fetch('/api/webauthn/login-options');
+            const d = await r.json();
+            if (!d.available || !d.allowCredentials || !d.allowCredentials.length) {
+                return showFormOnly();
+            }
+            loginOpts = d;
+            bioReady = true;
+
+            // Show biometric UI
+            bioZone.style.display = 'flex';
+            showLink.style.display = 'block';
+
+            // Check if platform authenticator exists
+            const hasBio = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().catch(() => false);
+            if (hasBio) {
+                bioIcon.textContent = '☝️';
+                bioHint.textContent = 'Touch ID · Face ID · Windows Hello';
+            } else {
+                bioIcon.textContent = '🔑';
+                bioHint.textContent = 'Device PIN / Security Key';
+            }
+
+            // Auto-trigger after a short grace period
+            setTimeout(() => { if (!running) triggerBiometric(); }, 600);
+
+        } catch(e) {
+            showFormOnly();
+        }
+    }
+
+    /* ── Show only the password form (no biometric registered or unsupported) ── */
+    function showFormOnly() {
+        bioZone.style.display = 'none';
+        orRow.style.display = 'none';
+        showLink.style.display = 'none';
+        formArea.classList.add('visible');
+    }
+
+    /* ── Expand form (fallback) ── */
+    function showForm() {
+        orRow.style.display   = bioReady ? 'flex' : 'none';
+        formArea.classList.add('visible');
+        showLink.style.display = 'none';
+        setTimeout(() => document.getElementById('username').focus(), 350);
+    }
+    window.showForm = showForm;
+
+    /* ── Biometric auth flow ── */
+    async function triggerBiometric() {
+        if (running || !loginOpts) return;
+        running = true;
+        bioBtn.disabled = true;
+        bioBtn.className = 'bio-btn verifying';
+        bioLabel.className = 'bio-label info';
+        bioLabel.textContent = 'Waiting for your device…';
+
+        try {
+            // Re-fetch fresh challenge each time (single-use nonces)
+            const r = await fetch('/api/webauthn/login-options');
+            const opts = await r.json();
+            if (!opts.available) throw { name: 'NotSupportedError', message: 'No passkeys registered.' };
+
+            // Build allowCredentials with ArrayBuffer IDs
+            const pubKeyOpts = {
+                challenge: fromB64url(opts.challenge),
+                allowCredentials: opts.allowCredentials.map(c => ({
+                    ...c,
+                    id: fromB64url(c.id)
+                })),
+                userVerification: 'required',
+                timeout: opts.timeout || 60000
+            };
+
+            // ↑ THIS is where Touch ID / Windows Hello fires
+            const assertion = await navigator.credentials.get({ publicKey: pubKeyOpts });
+
+            // Send assertion to server — structure must match @simplewebauthn/server expectations
+            const body = {
+                nonce: opts.nonce,
+                id: b64url(assertion.rawId),
+                rawId: b64url(assertion.rawId),
+                type: assertion.type,
+                response: {
+                    clientDataJSON:    b64url(assertion.response.clientDataJSON),
+                    authenticatorData: b64url(assertion.response.authenticatorData),
+                    signature:         b64url(assertion.response.signature)
+                },
+                authenticatorAttachment: assertion.authenticatorAttachment || undefined,
+                clientExtensionResults: assertion.getClientExtensionResults()
+            };
+
+            const loginRes = await fetch('/api/webauthn/login-verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const result = await loginRes.json();
+
+            if (result.success) {
+                // Success!
+                bioBtn.className = 'bio-btn success';
+                bioIcon.textContent = '✅';
+                bioLabel.className = 'bio-label ok';
+                bioLabel.textContent = 'Verified! Signing in…';
+                setTimeout(() => { location.href = result.redirect || '/'; }, 400);
+            } else {
+                throw { name: 'ServerError', message: result.error || 'Server rejected the assertion.' };
+            }
+
+        } catch(err) {
+            bioBtn.className = 'bio-btn fail';
+            bioIcon.textContent = '☝️';
+            bioLabel.className = 'bio-label err';
+
+            const msgs = {
+                NotAllowedError:  'Cancelled. Tap again or use password.',
+                InvalidStateError:'Passkey mismatch. Use password.',
+                SecurityError:    'Requires HTTPS. Use password.',
+                NotSupportedError: err.message || 'Not supported.',
+                ServerError:      err.message || 'Server error.'
+            };
+            bioLabel.textContent = msgs[err.name] || ('Error: ' + (err.message || err.name));
+
+            // Auto-show form after a failure
+            setTimeout(() => {
+                showForm();
+                bioBtn.className = 'bio-btn';
+            }, 1200);
+        } finally {
+            bioBtn.disabled = false;
+            running = false;
+        }
+    }
+    window.triggerBiometric = triggerBiometric;
+
+    /* ── Enter key → biometric first ── */
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'Enter') return;
+        // If the form is focused on an input, let the form submit naturally
+        const active = document.activeElement;
+        if (active && (active.id === 'username' || active.id === 'code')) return;
+        // Otherwise trigger biometric
+        if (bioReady && !running) {
+            e.preventDefault();
+            triggerBiometric();
+        }
+    });
+
+    init();
+})();
+</script>
+</body>
+</html>
