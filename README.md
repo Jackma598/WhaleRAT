@@ -35,13 +35,13 @@
 
 <div align="center">
 
-<a href="https://pub-3ab59b8f25ba43769d968211da80e759.r2.dev/whaleratdemo.mp4" target="_blank" title="Click to Watch Full Video with Audio">
+<a href="http://cdn.zidhuxd.com/whaleratdemo.mp4" target="_blank" title="Click to Watch Full Video with Audio">
   <img src="images/demo-preview.gif" alt="WhaleRAT Live Demonstration" width="900" style="border-radius: 8px; border: 1px solid #333;">
 </a>
 
 <br><br>
 
-<a href="https://pub-3ab59b8f25ba43769d968211da80e759.r2.dev/whaleratdemo.mp4" target="_blank">
+<a href="http://cdn.zidhuxd.com/whaleratdemo.mp4" target="_blank">
   <img src="https://img.shields.io/badge/▶_PLAY_FULL_DEMO_(WITH_SOUND)-c0392b?style=for-the-badge&logo=youtube&logoColor=white" alt="Play Full Demo Video with Sound"/>
 </a>
 
