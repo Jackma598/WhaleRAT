@@ -34,10 +34,21 @@
 ## 🎥 Demo Video
 
 <div align="center">
-  <video src="https://pub-3ab59b8f25ba43769d968211da80e759.r2.dev/whaleratdemo.mp4" width="920" controls autoplay loop playsinline>
-    <source src="https://pub-3ab59b8f25ba43769d968211da80e759.r2.dev/whaleratdemo.mp4" type="video/mp4">
-    Your browser does not support video playback. <a href="https://pub-3ab59b8f25ba43769d968211da80e759.r2.dev/whaleratdemo.mp4">Click here to download or watch the demo</a>.
-  </video>
+
+<a href="https://pub-3ab59b8f25ba43769d968211da80e759.r2.dev/whaleratdemo.mp4" target="_blank" title="Click to Watch Full Video with Audio">
+  <img src="images/demo-preview.gif" alt="WhaleRAT Live Demonstration" width="900" style="border-radius: 8px; border: 1px solid #333;">
+</a>
+
+<br><br>
+
+<a href="https://pub-3ab59b8f25ba43769d968211da80e759.r2.dev/whaleratdemo.mp4" target="_blank">
+  <img src="https://img.shields.io/badge/▶_PLAY_FULL_DEMO_(WITH_SOUND)-c0392b?style=for-the-badge&logo=youtube&logoColor=white" alt="Play Full Demo Video with Sound"/>
+</a>
+
+<p align="center">
+  <sub>🔊 Click the preview container or the button above to watch the full demo with audio (1:39)</sub>
+</p>
+
 </div>
 
 ---
@@ -45,14 +56,6 @@
 ## 📸 Screenshots
 
 <div align="center">
-
-### 🔐 Admin Authentication & Passkey Portal
-
-
-<img src="images/login-page.png" alt="Whale RAT Admin Authentication" width="920">
-
-<br><br>
-
 
 ### 🖥️ Real-Time C2 Dashboard & Live Target Monitor
 
