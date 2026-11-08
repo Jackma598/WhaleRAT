@@ -22,7 +22,7 @@
 
 ## 🐋 What is WhaleRAT?
 
-**WhaleRAT is a A powerful Android RAT developed for defensive security testing and no port forwarding. Developed by <a href="https://github.com/zidhuxd">@zidhuxd</a>**
+**WhaleRAT is a A powerful Android RAT developed for defensive security testing and no port forwarding. Developed by <a href="https://github.com/zidhuxdev">@zidhuxd</a>**
 
 1. **Telegram Bot** — issue commands, receive data, and get real-time alerts directly inside Telegram.
 2. **Web Dashboard (C2 Panel)** — a full-featured browser-based UI for managing multiple devices simultaneously, viewing live feeds, logs, galleries, and more.
