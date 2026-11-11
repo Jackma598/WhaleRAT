@@ -1,8 +1,7 @@
 {
-  "BOT_TOKEN": "your-bot-token",
-  "ADMIN_ID": "tg-user-id",
-"PORT": 8080, 
-  "ADMIN_CODE": "123456", 
-  "ADMIN_USERNAME": "zidhuxd" 
+  "BOT_TOKEN": "your-bot-token",       // Your Telegram bot token from BotFather
+  "ADMIN_ID": "tg-user-id",            // Your Telegram user ID (get it from @userinfobot)
+  "PORT": 8080,                        // Don't touch
+  "ADMIN_CODE": "123456",              // Web panel password
+  "ADMIN_USERNAME": "zidhuxd"          // Web panel username
 }
-
