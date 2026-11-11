@@ -317,7 +317,6 @@ The free build in this repo is the limited functional core. **WhaleRAT Pro** is 
 - **Stealthier persistence** — survives reboots, uninstallation
 - **Antivirus bypass surface** — reduced foreground footprint, quieter permission prompts, hide from launcher/app list
 - **Tighter C2 hygiene** — more heavy UI Controls
-- **Priority support** — direct line to me, not a GitHub issue queue
 - **Custom modules on request** — tell me what you need and we scope it
 
 **No pressure either way — using this repo for free forever is completely fine. Pro just exists because people asked.**
