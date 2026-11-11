@@ -192,9 +192,7 @@ Edit **`config.json`** before deploying:
 | `ADMIN_CODE` | Password for the web panel login |
 | `ADMIN_USERNAME` | Username for the web panel login |
 
-> [!IMPORTANT]
-> Never commit `config.json` with real credentials to a public repo. Use only private Github repo.
-
+ 
 ---
 
 ## 🚂 Deploy to Railway
